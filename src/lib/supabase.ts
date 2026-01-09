@@ -105,7 +105,17 @@ export const db = {
   },
 
   empresa: {
-    get: () => supabase.from('empresa').select('*').single(),
+    get: async () => {
+      // Use limit(1) instead of single() to avoid errors when no rows exist
+      const { data, error } = await supabase.from('empresa').select('*').limit(1);
+      if (error) {
+        console.error('Error fetching empresa:', error.code, error.message);
+        return { data: null, error };
+      }
+      console.log('Empresa data:', data);
+      // Return the first empresa or null if none exists
+      return { data: data && data.length > 0 ? data[0] : null, error: null };
+    },
     create: (data: unknown) => supabase.from('empresa').insert(data).select().single(),
     update: (id: string, data: unknown) => supabase.from('empresa').update(data).eq('id', id).select().single(),
   },

@@ -15,14 +15,26 @@ export function useCompany() {
     try {
       const { data, error: err } = await db.empresa.get();
 
-      if (err && err.code !== 'PGRST116') {
+      // Handle RLS permission errors - treat as no company exists
+      if (err) {
+        // PGRST116 = no rows returned, 42501 = RLS permission denied
+        if (err.code === 'PGRST116' || err.code === '42501') {
+          setCompany(null);
+          return;
+        }
         throw err;
       }
 
       setCompany(data || null);
     } catch (err) {
       console.error('Failed to fetch company:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      // Don't set error for permission issues - just treat as no company
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      if (errorMessage.includes('permission') || errorMessage.includes('RLS')) {
+        setCompany(null);
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
