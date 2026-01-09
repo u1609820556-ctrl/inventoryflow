@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/AppLayout';
 import { useCompany } from '@/hooks/useCompany';
@@ -25,6 +25,13 @@ import {
 export default function DashboardPage() {
   const router = useRouter();
   const { company, loading: companyLoading } = useCompany();
+
+  // Redirect to setup if no company exists after loading
+  useEffect(() => {
+    if (!companyLoading && !company) {
+      router.push('/setup');
+    }
+  }, [company, companyLoading, router]);
   const { products, loading: productsLoading } = useProducts();
   const { orders, loading: ordersLoading, approveOrder, rejectOrder } = useOrders();
 

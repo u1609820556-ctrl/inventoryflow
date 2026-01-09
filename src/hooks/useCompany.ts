@@ -6,7 +6,7 @@ import type { Empresa } from '@/types';
 
 export function useCompany() {
   const [company, setCompany] = useState<Empresa | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchCompany = useCallback(async () => {

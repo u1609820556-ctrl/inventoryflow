@@ -56,26 +56,8 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    // User is authenticated, check if setup is complete
-    const { data: company, error: companyError } = await supabase
-      .from('empresa')
-      .select('id')
-      .maybeSingle();
-
-    const isSetupComplete = company !== null && !companyError;
-
-    // If trying to access setup page but setup is already complete, redirect to dashboard
-    if ((pathname === '/setup' || pathname.startsWith('/setup/')) && isSetupComplete) {
-      const dashboardUrl = new URL('/dashboard', req.url);
-      return NextResponse.redirect(dashboardUrl);
-    }
-
-    // If trying to access protected pages but setup is not complete, redirect to setup
-    if (pathname !== '/setup' && !pathname.startsWith('/setup/') && !isSetupComplete) {
-      const setupUrl = new URL('/setup', req.url);
-      return NextResponse.redirect(setupUrl);
-    }
-
+    // User is authenticated, allow through
+    // Setup check will be done client-side in dashboard
     return res;
   } catch (error) {
     console.error('Middleware error:', error);

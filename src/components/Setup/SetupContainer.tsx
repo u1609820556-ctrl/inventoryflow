@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import SetupCompanyStep from './SetupCompanyStep';
 import SetupProductsStep, { type ProductData } from './SetupProductsStep';
@@ -14,6 +14,26 @@ export default function SetupContainer() {
   const [setupData, setSetupData] = useState<SetupData>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [checkingSetup, setCheckingSetup] = useState(true);
+
+  // Check if setup is already complete
+  useEffect(() => {
+    const checkExistingSetup = async () => {
+      try {
+        const { data: company, error: companyError } = await db.empresa.get();
+        if (company && !companyError) {
+          // Setup already complete, redirect to dashboard
+          window.location.href = '/dashboard';
+          return;
+        }
+      } catch (err) {
+        // No company exists, continue with setup
+        console.log('No existing company found, proceeding with setup');
+      }
+      setCheckingSetup(false);
+    };
+    checkExistingSetup();
+  }, []);
 
   const handleCompanyNext = (companyData: {
     nombre_empresa: string;
@@ -132,6 +152,18 @@ export default function SetupContainer() {
       setIsLoading(false);
     }
   };
+
+  // Show loading while checking existing setup
+  if (checkingSetup) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent mb-4"></div>
+          <p className="text-gray-600">Verificando configuración...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
