@@ -34,9 +34,12 @@ export default function LoginPage() {
 
       if (error) {
         setError(error.message);
-      } else if (data.session) {
-        router.push('/dashboard');
-        router.refresh();
+      } else if (data?.session || data?.user) {
+        // Login exitoso - redirigir al dashboard
+        window.location.href = '/dashboard';
+      } else if (isSignUp) {
+        // Si es registro, puede que necesite confirmar email
+        setError('Revisa tu email para confirmar tu cuenta');
       }
     } catch (err) {
       setError('Error al procesar la solicitud');
