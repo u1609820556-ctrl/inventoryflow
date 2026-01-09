@@ -156,19 +156,19 @@ export default function SetupContainer() {
   // Show loading while checking existing setup
   if (checkingSetup) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#F5F2ED] flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent mb-4"></div>
-          <p className="text-gray-600">Verificando configuración...</p>
+          <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-solid border-[#064E3B] border-r-transparent mb-4"></div>
+          <p className="text-[#6B7280] font-medium">Verificando configuración...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-[#F5F2ED] flex items-center justify-center py-12 px-4">
       {error && (
-        <div className="fixed top-4 right-4 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md max-w-md">
+        <div className="fixed top-4 right-4 bg-red-50 border border-red-200 text-[#991B1B] px-4 py-3 rounded-lg max-w-md shadow-sm">
           <p className="font-medium">Error</p>
           <p className="text-sm">{error}</p>
         </div>

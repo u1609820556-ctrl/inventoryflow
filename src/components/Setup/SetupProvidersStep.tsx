@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Users, Trash2 } from 'lucide-react';
 
 export interface ProviderData {
   nombre: string;
@@ -100,114 +101,124 @@ export default function SetupProvidersStep({
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6">
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold text-gray-900">Tus proveedores</h2>
-        <p className="text-sm text-gray-600 mt-1">Paso 3 de 3</p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="space-y-4">
-          {providers.map((provider, index) => (
-            <div key={index} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-sm font-medium text-gray-700">Proveedor {index + 1}</h3>
-                {providers.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveProvider(index)}
-                    className="text-red-600 hover:text-red-700 text-sm"
-                  >
-                    Eliminar
-                  </button>
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Nombre del proveedor
-                  </label>
-                  <input
-                    type="text"
-                    value={provider.nombre}
-                    onChange={(e) => handleProviderChange(index, 'nombre', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  {errors[index]?.nombre && (
-                    <p className="mt-1 text-sm text-red-600">{errors[index].nombre}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email (opcional)
-                  </label>
-                  <input
-                    type="email"
-                    value={provider.email || ''}
-                    onChange={(e) => handleProviderChange(index, 'email', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  {errors[index]?.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors[index].email}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Teléfono (opcional)
-                  </label>
-                  <input
-                    type="text"
-                    value={provider.telefono || ''}
-                    onChange={(e) => handleProviderChange(index, 'telefono', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Dirección (opcional)
-                  </label>
-                  <textarea
-                    value={provider.direccion || ''}
-                    onChange={(e) => handleProviderChange(index, 'direccion', e.target.value)}
-                    rows={2}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
+    <div className="w-full max-w-2xl mx-auto">
+      <div className="bg-white border border-[#E2E2D5] rounded-xl p-6 md:p-8 shadow-sm">
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-[#064E3B] rounded-lg flex items-center justify-center">
+              <Users className="w-5 h-5 text-[#F5F2ED]" strokeWidth={2.5} />
             </div>
-          ))}
+            <div>
+              <h2 className="font-serif text-2xl font-bold text-[#064E3B]">Tus proveedores</h2>
+              <p className="text-xs text-[#6B7280] font-medium">Paso 3 de 3</p>
+            </div>
+          </div>
         </div>
 
-        <button
-          type="button"
-          onClick={handleAddProvider}
-          className="w-full px-4 py-2 border-2 border-dashed border-gray-300 text-gray-700 font-medium rounded-md hover:border-gray-400 hover:bg-gray-50"
-        >
-          + Agregar otro proveedor
-        </button>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-4">
+            {providers.map((provider, index) => (
+              <div key={index} className="p-4 border border-[#E2E2D5] rounded-lg bg-[#F5F2ED]/50">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-sm font-bold text-[#374151]">Proveedor {index + 1}</h3>
+                  {providers.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveProvider(index)}
+                      className="flex items-center gap-1 text-[#991B1B] hover:opacity-80 text-sm font-medium transition-opacity"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Eliminar
+                    </button>
+                  )}
+                </div>
 
-        <div className="flex gap-3 pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-[#374151] mb-1">
+                      Nombre del proveedor
+                    </label>
+                    <input
+                      type="text"
+                      value={provider.nombre}
+                      onChange={(e) => handleProviderChange(index, 'nombre', e.target.value)}
+                      className="w-full px-3 py-2.5 border border-[#E2E2D5] rounded-lg text-[#374151] placeholder-[#9CA3AF] focus:outline-none focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B] transition-colors bg-white"
+                    />
+                    {errors[index]?.nombre && (
+                      <p className="mt-1 text-sm text-[#991B1B]">{errors[index].nombre}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#374151] mb-1">
+                      Email (opcional)
+                    </label>
+                    <input
+                      type="email"
+                      value={provider.email || ''}
+                      onChange={(e) => handleProviderChange(index, 'email', e.target.value)}
+                      className="w-full px-3 py-2.5 border border-[#E2E2D5] rounded-lg text-[#374151] placeholder-[#9CA3AF] focus:outline-none focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B] transition-colors bg-white"
+                    />
+                    {errors[index]?.email && (
+                      <p className="mt-1 text-sm text-[#991B1B]">{errors[index].email}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-[#374151] mb-1">
+                      Teléfono (opcional)
+                    </label>
+                    <input
+                      type="text"
+                      value={provider.telefono || ''}
+                      onChange={(e) => handleProviderChange(index, 'telefono', e.target.value)}
+                      className="w-full px-3 py-2.5 border border-[#E2E2D5] rounded-lg text-[#374151] placeholder-[#9CA3AF] focus:outline-none focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B] transition-colors bg-white"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-[#374151] mb-1">
+                      Dirección (opcional)
+                    </label>
+                    <textarea
+                      value={provider.direccion || ''}
+                      onChange={(e) => handleProviderChange(index, 'direccion', e.target.value)}
+                      rows={2}
+                      className="w-full px-3 py-2.5 border border-[#E2E2D5] rounded-lg text-[#374151] placeholder-[#9CA3AF] focus:outline-none focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B] transition-colors bg-white resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
           <button
             type="button"
-            onClick={onBack}
-            disabled={isLoading}
-            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={handleAddProvider}
+            className="w-full px-4 py-2.5 border-2 border-dashed border-[#E2E2D5] text-[#6B7280] font-medium rounded-lg hover:border-[#064E3B] hover:text-[#064E3B] hover:bg-[#F5F2ED]/50 transition-all duration-200"
           >
-            ATRÁS
+            + Agregar otro proveedor
           </button>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? 'GUARDANDO...' : 'FINALIZAR'}
-          </button>
-        </div>
-      </form>
+
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={onBack}
+              disabled={isLoading}
+              className="flex-1 px-4 py-2.5 border border-[#E2E2D5] text-[#374151] font-medium rounded-lg hover:bg-[#F5F2ED]/50 hover:border-[#9CA3AF] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              ATRÁS
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="flex-1 px-4 py-2.5 bg-[#064E3B] text-[#F5F2ED] font-medium rounded-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[#064E3B] focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'GUARDANDO...' : 'FINALIZAR'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { authHelpers } from '@/lib/supabase';
+import { Sparkles } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -49,11 +50,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md space-y-8 rounded-lg bg-white p-8 shadow-md">
+    <div className="flex min-h-screen items-center justify-center bg-[#F5F2ED]">
+      <div className="w-full max-w-md space-y-8 rounded-xl bg-white p-8 shadow-sm border border-[#E2E2D5]">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">InventoryFlow</h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="w-12 h-12 bg-[#064E3B] rounded-lg flex items-center justify-center shadow-sm">
+              <Sparkles className="w-6 h-6 text-[#F5F2ED]" strokeWidth={2.5} />
+            </div>
+          </div>
+          <h1 className="font-serif text-3xl font-bold text-[#064E3B] tracking-tight">InventoryFlow</h1>
+          <p className="mt-2 text-sm text-[#6B7280]">
             {isSignUp ? 'Crear cuenta' : 'Iniciar sesión'}
           </p>
         </div>
@@ -61,7 +67,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-[#374151]">
                 Email
               </label>
               <input
@@ -70,13 +76,13 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-lg border border-[#E2E2D5] px-3 py-2.5 text-[#374151] placeholder-[#9CA3AF] focus:border-[#064E3B] focus:outline-none focus:ring-1 focus:ring-[#064E3B] transition-colors"
                 placeholder="tu@email.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-[#374151]">
                 Contraseña
               </label>
               <input
@@ -85,14 +91,14 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-blue-500"
+                className="mt-1 block w-full rounded-lg border border-[#E2E2D5] px-3 py-2.5 text-[#374151] placeholder-[#9CA3AF] focus:border-[#064E3B] focus:outline-none focus:ring-1 focus:ring-[#064E3B] transition-colors"
                 placeholder="••••••••"
               />
             </div>
           </div>
 
           {error && (
-            <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
+            <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-[#991B1B]">
               {error}
             </div>
           )}
@@ -100,7 +106,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-md bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-lg bg-[#064E3B] px-4 py-2.5 text-[#F5F2ED] font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-[#064E3B] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
           >
             {loading ? 'Procesando...' : isSignUp ? 'Crear cuenta' : 'Iniciar sesión'}
           </button>
@@ -112,7 +118,7 @@ export default function LoginPage() {
                 setIsSignUp(!isSignUp);
                 setError(null);
               }}
-              className="text-sm text-blue-600 hover:text-blue-500"
+              className="text-sm text-[#064E3B] hover:opacity-80 font-medium transition-opacity"
             >
               {isSignUp ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate'}
             </button>
