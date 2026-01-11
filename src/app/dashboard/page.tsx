@@ -2,10 +2,13 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import AppLayout from '@/components/AppLayout';
 import { useCompany } from '@/hooks/useCompany';
 import { useProducts } from '@/hooks/useProducts';
 import { useOrders } from '@/hooks/useOrders';
+import { useReorderRules } from '@/hooks/useReorderRules';
+import { useGeneratedOrders } from '@/hooks/useGeneratedOrders';
 import { authHelpers } from '@/lib/supabase';
 import type { Producto, Pedido } from '@/types';
 import {
@@ -20,6 +23,9 @@ import {
   Check,
   X,
   Sparkles,
+  Settings,
+  Send,
+  ArrowRight,
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -34,6 +40,8 @@ export default function DashboardPage() {
   }, [company, companyLoading, router]);
   const { products, loading: productsLoading } = useProducts();
   const { orders, loading: ordersLoading, approveOrder, rejectOrder } = useOrders();
+  const { rules, getActiveRulesCount } = useReorderRules();
+  const { orders: generatedOrders, getPendingOrdersCount, getSentOrdersThisWeek } = useGeneratedOrders();
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
@@ -436,6 +444,108 @@ export default function DashboardPage() {
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* DIVIDER */}
+          <div className="my-8 md:my-12">
+            <div className="h-px bg-[#E2E2D5]"></div>
+          </div>
+
+          {/* AUTOPEDIDOS SECTION */}
+          <div className="bg-white border border-[#E2E2D5] rounded-xl p-6 md:p-8 shadow-sm">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-4 mb-6 border-b border-[#E2E2D5]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#064E3B] rounded-lg flex items-center justify-center">
+                  <Settings className="w-5 h-5 text-[#F5F2ED]" />
+                </div>
+                <div>
+                  <h3 className="font-serif text-xl md:text-2xl font-bold text-[#374151]">
+                    Autopedidos - Resumen
+                  </h3>
+                  <p className="text-xs md:text-sm text-[#6B7280] mt-1">
+                    Estado de reglas y pedidos automáticos
+                  </p>
+                </div>
+              </div>
+              <Link
+                href="/generated-orders"
+                className="flex items-center gap-1.5 text-sm font-medium text-[#064E3B] hover:underline"
+              >
+                Ver todos los pedidos
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* Reglas Activas */}
+              <div className="bg-[#F9FAFB] rounded-xl p-4 md:p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Settings className="w-4 h-4 text-[#6B7280]" />
+                  <span className="text-xs font-medium text-[#6B7280] uppercase tracking-wider">
+                    Reglas Activas
+                  </span>
+                </div>
+                <p className="font-serif text-3xl md:text-4xl font-bold text-[#064E3B]">
+                  {getActiveRulesCount()}
+                </p>
+                <Link
+                  href="/reorder-rules"
+                  className="text-xs text-[#064E3B] font-medium hover:underline mt-2 inline-block"
+                >
+                  Gestionar reglas
+                </Link>
+              </div>
+
+              {/* Pedidos Pendientes */}
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 md:p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="w-4 h-4 text-amber-600" />
+                  <span className="text-xs font-medium text-amber-700 uppercase tracking-wider">
+                    Pendientes
+                  </span>
+                </div>
+                <p className="font-serif text-3xl md:text-4xl font-bold text-amber-600">
+                  {getPendingOrdersCount()}
+                </p>
+                <p className="text-xs text-amber-600 mt-2">
+                  Por revisar/enviar
+                </p>
+              </div>
+
+              {/* Enviados esta semana */}
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 md:p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <Send className="w-4 h-4 text-emerald-600" />
+                  <span className="text-xs font-medium text-emerald-700 uppercase tracking-wider">
+                    Enviados (sem.)
+                  </span>
+                </div>
+                <p className="font-serif text-3xl md:text-4xl font-bold text-emerald-600">
+                  {getSentOrdersThisWeek()}
+                </p>
+                <p className="text-xs text-emerald-600 mt-2">
+                  Últimos 7 días
+                </p>
+              </div>
+
+              {/* Total Pedidos */}
+              <div className="bg-[#F9FAFB] rounded-xl p-4 md:p-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="w-4 h-4 text-[#6B7280]" />
+                  <span className="text-xs font-medium text-[#6B7280] uppercase tracking-wider">
+                    Total Pedidos
+                  </span>
+                </div>
+                <p className="font-serif text-3xl md:text-4xl font-bold text-[#374151]">
+                  {generatedOrders.length}
+                </p>
+                <p className="text-xs text-[#6B7280] mt-2">
+                  Generados
+                </p>
+              </div>
             </div>
           </div>
         </div>

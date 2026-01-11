@@ -119,4 +119,13 @@ export const db = {
     create: (data: unknown) => supabase.from('empresa').insert(data).select().single(),
     update: (id: string, data: unknown) => supabase.from('empresa').update(data).eq('id', id).select().single(),
   },
+
+  pedidosGenerados: {
+    getAll: () => supabase.from('pedidos_generados').select('*, proveedores(nombre)').order('created_at', { ascending: false }),
+    getById: (id: string) => supabase.from('pedidos_generados').select('*, proveedores(*)').eq('id', id).single(),
+    create: (data: unknown) => supabase.from('pedidos_generados').insert(data).select().single(),
+    update: (id: string, data: unknown) => supabase.from('pedidos_generados').update(data).eq('id', id).select().single(),
+    delete: (id: string) => supabase.from('pedidos_generados').delete().eq('id', id),
+    getByEstado: (estado: string) => supabase.from('pedidos_generados').select('*, proveedores(nombre)').eq('estado', estado).order('created_at', { ascending: false }),
+  },
 };

@@ -2,6 +2,7 @@
 
 export interface Producto {
   id: string;
+  empresa_id: string;
   nombre: string;
   descripcion?: string;
   codigo_barras?: string;
@@ -26,6 +27,7 @@ export interface Movimiento {
 
 export interface Proveedor {
   id: string;
+  empresa_id: string;
   nombre: string;
   email?: string;
   telefono?: string;
@@ -71,6 +73,7 @@ export interface LineaPedido {
 
 export interface ReglaAutopedido {
   id: string;
+  empresa_id: string;
   habilitado: boolean;
   producto_id: string;
   stock_minimo_trigger: number;
@@ -82,6 +85,35 @@ export interface ReglaAutopedido {
   // Optional joined fields from Supabase queries
   productos?: { nombre: string };
   proveedores?: { nombre: string };
+}
+
+// Estados posibles para pedidos generados
+export type EstadoPedidoGenerado = 'pending_review' | 'sent' | 'completed' | 'cancelled';
+
+// Estructura de línea de pedido en datos_pedido JSONB
+export interface LineaPedidoGenerado {
+  producto_id: string;
+  cantidad: number;
+  precio_unitario: number;
+  nombre_producto?: string;
+  codigo?: string;
+}
+
+export interface PedidoGenerado {
+  id: string;
+  empresa_id: string;
+  proveedor_id: string;
+  estado: EstadoPedidoGenerado;
+  datos_pedido: LineaPedidoGenerado[];
+  total_estimado: number;
+  pdf_url?: string;
+  email_template_used?: string;
+  notas?: string;
+  created_at: string;
+  sent_at?: string;
+  updated_at: string;
+  // Optional joined fields from Supabase queries
+  proveedores?: Proveedor;
 }
 
 // Empresa

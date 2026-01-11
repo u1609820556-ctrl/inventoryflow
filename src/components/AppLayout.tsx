@@ -15,7 +15,8 @@ const navigation: NavItem[] = [
   { name: 'Productos', href: '/products' },
   { name: 'Movimientos', href: '/movements' },
   { name: 'Pedidos', href: '/orders' },
-  { name: 'Autopedidos', href: '/auto-orders' },
+  { name: 'Reglas Autopedido', href: '/reorder-rules' },
+  { name: 'Pedidos Generados', href: '/generated-orders' },
   { name: 'Proveedores', href: '/providers' },
   { name: 'Configuración', href: '/config' },
 ];
