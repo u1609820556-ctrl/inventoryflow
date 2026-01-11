@@ -105,6 +105,10 @@ export function useProducts() {
     setError(null);
 
     try {
+      // Validar que proveedor_principal_id es un UUID válido si se proporciona
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const proveedorId = data.proveedor_principal_id?.trim();
+
       const insertData = {
         empresa_id: empresaId,
         nombre: data.nombre.trim(),
@@ -112,7 +116,7 @@ export function useProducts() {
         codigo_barras: data.codigo_barras?.trim() || null,
         stock_actual: data.stock_actual,
         stock_minimo: data.stock_minimo,
-        proveedor_principal_id: data.proveedor_principal_id || null,
+        proveedor_principal_id: (proveedorId && uuidRegex.test(proveedorId)) ? proveedorId : null,
       };
 
       console.log('[useProducts] Insertando producto:', insertData);
@@ -165,7 +169,9 @@ export function useProducts() {
   ): Promise<void> => {
     console.log('[useProducts] updateProduct llamado:', { id, data });
 
-    if (!id || typeof id !== 'string') {
+    // Validar que el ID es un UUID válido
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!id || typeof id !== 'string' || !uuidRegex.test(id)) {
       throw new Error('ID de producto inválido');
     }
     if (!empresaId) {
@@ -182,9 +188,25 @@ export function useProducts() {
     setError(null);
 
     try {
+      // Limpiar datos antes de enviar - convertir strings vacíos a null para campos UUID
+      const cleanedData: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(data)) {
+        if (key === 'proveedor_principal_id') {
+          // Si es string vacío o no es UUID válido, enviar null
+          cleanedData[key] = (typeof value === 'string' && value.trim() && uuidRegex.test(value)) ? value : null;
+        } else if (typeof value === 'string') {
+          // Para otros strings, usar null si está vacío, o trim del valor
+          cleanedData[key] = value.trim() || null;
+        } else {
+          cleanedData[key] = value;
+        }
+      }
+
+      console.log('[useProducts] Datos limpiados para actualizar:', cleanedData);
+
       const { data: updatedProduct, error: err } = await supabase
         .from('productos')
-        .update(data)
+        .update(cleanedData)
         .eq('id', id)
         .eq('empresa_id', empresaId) // Seguridad adicional
         .select()
@@ -195,6 +217,11 @@ export function useProducts() {
 
         if (err.code === '42501' || err.message.includes('RLS')) {
           throw new Error('Error de permisos: No tienes permiso para actualizar este producto.');
+        }
+
+        // Error específico de UUID inválido
+        if (err.message.includes('invalid input syntax for type uuid')) {
+          throw new Error('Error: Uno de los campos UUID tiene un formato inválido.');
         }
 
         throw new Error(`Error al actualizar: ${err.message}`);
