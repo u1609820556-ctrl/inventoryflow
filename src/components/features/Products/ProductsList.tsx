@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import type { Producto } from '@/types';
 import { Search, Plus, MoreVertical, AlertCircle } from 'lucide-react';
+import ConfirmModal from '@/components/ui/ConfirmModal';
+import { TableSkeleton, CardListSkeleton } from '@/components/ui/Skeleton';
 
 export interface ProductsListProps {
   products: Producto[];
@@ -23,6 +25,11 @@ export default function ProductsList({
 }: ProductsListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; product: Producto | null }>({
+    isOpen: false,
+    product: null,
+  });
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -31,13 +38,21 @@ export default function ProductsList({
   };
 
   const handleDeleteClick = (product: Producto) => {
-    const confirmDelete = window.confirm(
-      `Estas seguro de eliminar el producto "${product.nombre}"?`
-    );
-    if (confirmDelete) {
-      onDelete(product.id);
-    }
+    setDeleteModal({ isOpen: true, product });
     setOpenMenuId(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.product) return;
+    setDeleteLoading(true);
+    try {
+      await onDelete(deleteModal.product.id);
+      setDeleteModal({ isOpen: false, product: null });
+    } catch {
+      // El error se maneja en el componente padre
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const toggleMenu = (productId: string) => {
@@ -53,12 +68,19 @@ export default function ProductsList({
 
   if (loading) {
     return (
-      <div className="bg-white border border-[#E2E2D5] rounded-xl p-6 md:p-8 shadow-sm">
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#064E3B] border-r-transparent"></div>
-            <p className="mt-4 text-[#6B7280] font-medium">Cargando productos...</p>
-          </div>
+      <div className="space-y-6">
+        {/* Header skeleton */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="w-full sm:w-96 h-12 bg-[#E2E2D5] rounded-xl animate-pulse" />
+          <div className="w-full sm:w-40 h-12 bg-[#E2E2D5] rounded-xl animate-pulse" />
+        </div>
+        {/* Desktop table skeleton */}
+        <div className="hidden md:block">
+          <TableSkeleton rows={5} />
+        </div>
+        {/* Mobile cards skeleton */}
+        <div className="md:hidden">
+          <CardListSkeleton count={5} />
         </div>
       </div>
     );
@@ -276,6 +298,19 @@ export default function ProductsList({
           Total: <span className="font-semibold text-[#374151]">{products.length}</span> producto{products.length !== 1 ? 's' : ''}
         </div>
       )}
+
+      {/* Modal de confirmación para eliminar */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, product: null })}
+        onConfirm={handleConfirmDelete}
+        title="Eliminar producto"
+        message={`¿Estás seguro de eliminar "${deleteModal.product?.nombre}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        type="danger"
+        loading={deleteLoading}
+      />
     </div>
   );
 }

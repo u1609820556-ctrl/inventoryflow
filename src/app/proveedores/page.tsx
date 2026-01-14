@@ -8,6 +8,7 @@ import { useProveedores } from '@/hooks/useProveedores';
 import type { Proveedor } from '@/types';
 import type { ProviderFormData } from '@/components/features/Proveedores/ProviderForm';
 import { Building2 } from 'lucide-react';
+import { showSuccess, showError } from '@/components/ui/Toast';
 
 export default function ProvidersPage() {
   const {
@@ -48,9 +49,12 @@ export default function ProvidersPage() {
   const handleDelete = async (id: string) => {
     try {
       await deleteProveedor(id);
+      showSuccess('Proveedor eliminado correctamente');
     } catch (err) {
       console.error('Error deleting provider:', err);
-      alert('Error al eliminar el proveedor. Por favor intenta de nuevo.');
+      const message = err instanceof Error ? err.message : 'Error al eliminar el proveedor';
+      showError(message);
+      throw err;
     }
   };
 
@@ -59,18 +63,17 @@ export default function ProvidersPage() {
     try {
       if (selectedProvider) {
         await updateProveedor(selectedProvider.id, data);
+        showSuccess(`Proveedor "${data.nombre}" actualizado correctamente`);
       } else {
         await createProveedor(data);
+        showSuccess(`Proveedor "${data.nombre}" creado correctamente`);
       }
       setIsModalOpen(false);
       setSelectedProvider(null);
     } catch (err) {
       console.error('Error saving provider:', err);
-      alert(
-        selectedProvider
-          ? 'Error al actualizar el proveedor. Por favor intenta de nuevo.'
-          : 'Error al crear el proveedor. Por favor intenta de nuevo.'
-      );
+      const message = err instanceof Error ? err.message : 'Error al guardar el proveedor';
+      showError(message);
     } finally {
       setModalLoading(false);
     }

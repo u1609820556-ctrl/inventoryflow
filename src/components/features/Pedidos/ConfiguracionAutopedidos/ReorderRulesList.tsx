@@ -3,12 +3,14 @@
 import { useState } from 'react';
 import { Edit2, Trash2, ToggleLeft, ToggleRight, Package, Truck, AlertCircle } from 'lucide-react';
 import type { ReglaAutopedido } from '@/types';
+import ConfirmModal from '@/components/ui/ConfirmModal';
+import { TableSkeleton } from '@/components/ui/Skeleton';
 
 interface ReorderRulesListProps {
   rules: ReglaAutopedido[];
   loading?: boolean;
   onEdit: (rule: ReglaAutopedido) => void;
-  onToggle: (id: string) => Promise<ReglaAutopedido>;
+  onToggle: (id: string, activa: boolean) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
 }
 
@@ -20,36 +22,40 @@ export default function ReorderRulesList({
   onDelete,
 }: ReorderRulesListProps) {
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; rule: ReglaAutopedido | null }>({
+    isOpen: false,
+    rule: null,
+  });
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
-  const handleToggle = async (id: string) => {
-    setLoadingAction(id);
+  const handleToggle = async (rule: ReglaAutopedido) => {
+    setLoadingAction(rule.id);
     try {
-      await onToggle(id);
+      await onToggle(rule.id, !rule.activa);
     } finally {
       setLoadingAction(null);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    setLoadingAction(id);
+  const handleDeleteClick = (rule: ReglaAutopedido) => {
+    setDeleteModal({ isOpen: true, rule });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.rule) return;
+    setDeleteLoading(true);
     try {
-      await onDelete(id);
-      setDeleteConfirm(null);
+      await onDelete(deleteModal.rule.id);
+      setDeleteModal({ isOpen: false, rule: null });
+    } catch {
+      // Error manejado en el padre
     } finally {
-      setLoadingAction(null);
+      setDeleteLoading(false);
     }
   };
 
   if (loading) {
-    return (
-      <div className="bg-white border border-[#E2E2D5] rounded-xl p-8">
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#064E3B] border-r-transparent mb-4"></div>
-          <p className="text-[#6B7280] font-medium">Cargando reglas...</p>
-        </div>
-      </div>
-    );
+    return <TableSkeleton rows={5} />;
   }
 
   if (rules.length === 0) {
@@ -128,7 +134,7 @@ export default function ReorderRulesList({
                 </td>
                 <td className="px-6 py-4 text-center">
                   <button
-                    onClick={() => handleToggle(rule.id)}
+                    onClick={() => handleToggle(rule)}
                     disabled={loadingAction === rule.id}
                     className="inline-flex items-center gap-1.5 transition-colors disabled:opacity-50"
                   >
@@ -154,31 +160,13 @@ export default function ReorderRulesList({
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
-                    {deleteConfirm === rule.id ? (
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleDelete(rule.id)}
-                          disabled={loadingAction === rule.id}
-                          className="px-2 py-1 text-xs font-medium text-white bg-[#991B1B] rounded hover:bg-red-700 transition-colors disabled:opacity-50"
-                        >
-                          Confirmar
-                        </button>
-                        <button
-                          onClick={() => setDeleteConfirm(null)}
-                          className="px-2 py-1 text-xs font-medium text-[#6B7280] hover:text-[#374151] transition-colors"
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setDeleteConfirm(rule.id)}
-                        className="p-2 text-[#6B7280] hover:text-[#991B1B] hover:bg-red-50 rounded-lg transition-colors"
-                        title="Eliminar"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
+                    <button
+                      onClick={() => handleDeleteClick(rule)}
+                      className="p-2 text-[#6B7280] hover:text-[#991B1B] hover:bg-red-50 rounded-lg transition-colors"
+                      title="Eliminar"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -206,7 +194,7 @@ export default function ReorderRulesList({
                 </div>
               </div>
               <button
-                onClick={() => handleToggle(rule.id)}
+                onClick={() => handleToggle(rule)}
                 disabled={loadingAction === rule.id}
                 className="transition-colors disabled:opacity-50"
               >
@@ -237,35 +225,30 @@ export default function ReorderRulesList({
                 <Edit2 className="w-3.5 h-3.5" />
                 Editar
               </button>
-              {deleteConfirm === rule.id ? (
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => handleDelete(rule.id)}
-                    disabled={loadingAction === rule.id}
-                    className="px-3 py-1.5 text-xs font-medium text-white bg-[#991B1B] rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-                  >
-                    Confirmar
-                  </button>
-                  <button
-                    onClick={() => setDeleteConfirm(null)}
-                    className="px-3 py-1.5 text-xs font-medium text-[#6B7280] hover:text-[#374151] transition-colors"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setDeleteConfirm(rule.id)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#991B1B] border border-[#991B1B]/20 rounded-lg hover:bg-red-50 transition-colors"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                  Eliminar
-                </button>
-              )}
+              <button
+                onClick={() => handleDeleteClick(rule)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#991B1B] border border-[#991B1B]/20 rounded-lg hover:bg-red-50 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Eliminar
+              </button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Modal de confirmación para eliminar */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, rule: null })}
+        onConfirm={handleConfirmDelete}
+        title="Eliminar regla de autopedido"
+        message={`¿Estás seguro de eliminar la regla para "${deleteModal.rule?.productos?.nombre || 'este producto'}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        type="danger"
+        loading={deleteLoading}
+      />
     </div>
   );
 }

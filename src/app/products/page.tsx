@@ -8,6 +8,7 @@ import { useProducts } from '@/hooks/useProducts';
 import type { Producto } from '@/types';
 import type { ProductFormData } from '@/components/features/Products/ProductForm';
 import { Package } from 'lucide-react';
+import { showSuccess, showError } from '@/components/ui/Toast';
 
 export default function ProductsPage() {
   const {
@@ -42,9 +43,12 @@ export default function ProductsPage() {
   const handleDelete = async (id: string) => {
     try {
       await deleteProduct(id);
+      showSuccess('Producto eliminado correctamente');
     } catch (err) {
       console.error('Error deleting product:', err);
-      alert('Error al eliminar el producto. Por favor intenta de nuevo.');
+      const message = err instanceof Error ? err.message : 'Error al eliminar el producto';
+      showError(message);
+      throw err;
     }
   };
 
@@ -53,18 +57,17 @@ export default function ProductsPage() {
     try {
       if (selectedProduct) {
         await updateProduct(selectedProduct.id, data);
+        showSuccess(`Producto "${data.nombre}" actualizado correctamente`);
       } else {
         await createProduct(data);
+        showSuccess(`Producto "${data.nombre}" creado correctamente`);
       }
       setIsModalOpen(false);
       setSelectedProduct(null);
     } catch (err) {
       console.error('Error saving product:', err);
-      alert(
-        selectedProduct
-          ? 'Error al actualizar el producto. Por favor intenta de nuevo.'
-          : 'Error al crear el producto. Por favor intenta de nuevo.'
-      );
+      const message = err instanceof Error ? err.message : 'Error al guardar el producto';
+      showError(message);
     } finally {
       setModalLoading(false);
     }

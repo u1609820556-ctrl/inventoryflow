@@ -17,8 +17,6 @@ import {
   TrendingUp,
   CheckCircle2,
   Clock,
-  Eye,
-  ShoppingCart,
   Check,
   X,
   Sparkles,
@@ -26,6 +24,7 @@ import {
   Send,
   ArrowRight,
 } from 'lucide-react';
+import { showError, showInfo } from '@/components/ui/Toast';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -54,7 +53,7 @@ export default function DashboardPage() {
       const rule = rules.find(r => r.producto_id === p.id && r.activa);
       return rule ? p.stock < rule.stock_minimo : false;
     });
-  }, [products]);
+  }, [products, rules]);
 
   const pendingOrders = useMemo(() => {
     return generatedOrders.filter((order) => order.estado === 'pending_review');
@@ -68,7 +67,7 @@ export default function DashboardPage() {
       router.push('/login');
     } catch (err) {
       console.error('Failed to logout:', err);
-      alert('Error al cerrar sesión');
+      showError('Error al cerrar sesión');
       setIsLoggingOut(false);
     }
   };
@@ -77,10 +76,11 @@ export default function DashboardPage() {
     setLoadingOrderId(id);
     try {
       // TODO: Implement approve via API - for now redirect to orders page
-      alert('Para aprobar este pedido, ve a la página de Pedidos');
+      showInfo('Para aprobar este pedido, ve a la página de Pedidos');
+      router.push('/pedidos/historial');
     } catch (err) {
       console.error('Failed to approve order:', err);
-      alert('Error al aprobar pedido');
+      showError('Error al aprobar pedido');
     } finally {
       setLoadingOrderId(null);
     }
@@ -90,10 +90,11 @@ export default function DashboardPage() {
     setLoadingOrderId(id);
     try {
       // TODO: Implement reject via API - for now redirect to orders page
-      alert('Para rechazar este pedido, ve a la página de Pedidos');
+      showInfo('Para rechazar este pedido, ve a la página de Pedidos');
+      router.push('/pedidos/historial');
     } catch (err) {
       console.error('Failed to reject order:', err);
-      alert('Error al rechazar pedido');
+      showError('Error al rechazar pedido');
     } finally {
       setLoadingOrderId(null);
     }

@@ -9,6 +9,7 @@ import { useProducts } from '@/hooks/useProducts';
 import { useProveedores } from '@/hooks/useProveedores';
 import type { ReglaAutopedido } from '@/types';
 import { Plus, Settings, RefreshCw } from 'lucide-react';
+import { showSuccess, showError } from '@/components/ui/Toast';
 
 export default function ConfiguracionAutopedidosPage() {
   const { rules, loading, error, createRule, updateRule, toggleRule, deleteRule, fetchRules } =
@@ -41,12 +42,40 @@ export default function ConfiguracionAutopedidosPage() {
     cantidad_pedido: number;
     activa: boolean;
   }) => {
-    if (editingRule) {
-      // Update existing rule using PUT endpoint
-      await updateRule(editingRule.id, data);
-    } else {
-      // Create new rule
-      await createRule(data);
+    try {
+      if (editingRule) {
+        await updateRule(editingRule.id, data);
+        showSuccess('Regla actualizada correctamente');
+      } else {
+        await createRule(data);
+        showSuccess('Regla creada correctamente');
+      }
+      setIsModalOpen(false);
+      setEditingRule(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al guardar la regla';
+      showError(message);
+    }
+  };
+
+  const handleToggle = async (ruleId: string, activa: boolean) => {
+    try {
+      await toggleRule(ruleId, activa);
+      showSuccess(activa ? 'Regla activada' : 'Regla desactivada');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al cambiar estado';
+      showError(message);
+    }
+  };
+
+  const handleDelete = async (ruleId: string) => {
+    try {
+      await deleteRule(ruleId);
+      showSuccess('Regla eliminada correctamente');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Error al eliminar la regla';
+      showError(message);
+      throw err;
     }
   };
 
@@ -132,8 +161,8 @@ export default function ConfiguracionAutopedidosPage() {
             rules={rules}
             loading={loading}
             onEdit={handleEditClick}
-            onToggle={toggleRule}
-            onDelete={deleteRule}
+            onToggle={handleToggle}
+            onDelete={handleDelete}
           />
         </div>
       </div>

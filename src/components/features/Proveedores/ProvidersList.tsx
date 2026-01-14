@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import type { Proveedor } from '@/types';
 import { Search, Plus, MoreVertical, Building2, Mail, Phone, MapPin } from 'lucide-react';
+import ConfirmModal from '@/components/ui/ConfirmModal';
+import { TableSkeleton, CardListSkeleton } from '@/components/ui/Skeleton';
 
 export interface ProvidersListProps {
   providers: Proveedor[];
@@ -23,6 +25,11 @@ export default function ProvidersList({
 }: ProvidersListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; provider: Proveedor | null }>({
+    isOpen: false,
+    provider: null,
+  });
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -31,13 +38,21 @@ export default function ProvidersList({
   };
 
   const handleDeleteClick = (provider: Proveedor) => {
-    const confirmDelete = window.confirm(
-      `¿Estás seguro de eliminar el proveedor "${provider.nombre}"?`
-    );
-    if (confirmDelete) {
-      onDelete(provider.id);
-    }
+    setDeleteModal({ isOpen: true, provider });
     setOpenMenuId(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteModal.provider) return;
+    setDeleteLoading(true);
+    try {
+      await onDelete(deleteModal.provider.id);
+      setDeleteModal({ isOpen: false, provider: null });
+    } catch {
+      // El error se maneja en el componente padre
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const toggleMenu = (providerId: string) => {
@@ -46,12 +61,19 @@ export default function ProvidersList({
 
   if (loading) {
     return (
-      <div className="bg-white border border-[#E2E2D5] rounded-xl p-6 md:p-8 shadow-sm">
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-[#064E3B] border-r-transparent"></div>
-            <p className="mt-4 text-[#6B7280] font-medium">Cargando proveedores...</p>
-          </div>
+      <div className="space-y-6">
+        {/* Header skeleton */}
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div className="w-full sm:w-96 h-12 bg-[#E2E2D5] rounded-xl animate-pulse" />
+          <div className="w-full sm:w-44 h-12 bg-[#E2E2D5] rounded-xl animate-pulse" />
+        </div>
+        {/* Desktop table skeleton */}
+        <div className="hidden md:block">
+          <TableSkeleton rows={5} />
+        </div>
+        {/* Mobile cards skeleton */}
+        <div className="md:hidden">
+          <CardListSkeleton count={5} />
         </div>
       </div>
     );
@@ -291,6 +313,19 @@ export default function ProvidersList({
           Total: <span className="font-semibold text-[#374151]">{providers.length}</span> proveedor{providers.length !== 1 ? 'es' : ''}
         </div>
       )}
+
+      {/* Modal de confirmación para eliminar */}
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, provider: null })}
+        onConfirm={handleConfirmDelete}
+        title="Eliminar proveedor"
+        message={`¿Estás seguro de eliminar "${deleteModal.provider?.nombre}"? Esta acción no se puede deshacer.`}
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        type="danger"
+        loading={deleteLoading}
+      />
     </div>
   );
 }
