@@ -10,9 +10,10 @@ export default function LowStockList({ products }: LowStockListProps) {
   const displayProducts = products.slice(0, 5);
 
   const getStockStatus = (product: Producto) => {
-    const percentage = (product.stock_actual / product.stock_minimo) * 100;
-    if (percentage <= 30) return { color: 'text-red-600', icon: '🔴' };
-    if (percentage <= 60) return { color: 'text-yellow-600', icon: '🟡' };
+    // Con la nueva estructura, no hay stock_minimo en producto
+    // Se usa stock <= 0 como indicador de bajo stock
+    if (product.stock <= 0) return { color: 'text-red-600', icon: '🔴' };
+    if (product.stock <= 10) return { color: 'text-yellow-600', icon: '🟡' };
     return { color: 'text-green-600', icon: '🟢' };
   };
 
@@ -47,14 +48,13 @@ export default function LowStockList({ products }: LowStockListProps) {
                       {product.nombre}
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      Stock: <span className="font-mono font-medium">{product.stock_actual}</span> /
-                      Mínimo: <span className="font-mono font-medium">{product.stock_minimo}</span>
+                      Stock: <span className="font-mono font-medium">{product.stock}</span>
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <span className={`text-lg font-mono font-bold ${status.color}`}>
-                    {product.stock_actual}
+                    {product.stock}
                   </span>
                   <p className="text-xs text-gray-400 mt-0.5">unidades</p>
                 </div>

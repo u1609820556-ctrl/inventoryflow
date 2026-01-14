@@ -1,16 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { Producto } from '@/types';
-import { AlertTriangle } from 'lucide-react';
+import type { Producto, CreateProductoInput } from '@/types';
 
 export interface ProductFormData {
   nombre: string;
   descripcion?: string;
   codigo_barras?: string;
-  stock_actual: number;
-  stock_minimo: number;
-  proveedor_principal_id?: string;
+  stock: number;
+  precio_unitario: number;
 }
 
 export interface ProductFormProps {
@@ -25,13 +23,11 @@ export default function ProductForm({ product, onSubmit, onCancel, loading }: Pr
     nombre: '',
     descripcion: '',
     codigo_barras: '',
-    stock_actual: 0,
-    stock_minimo: 0,
-    proveedor_principal_id: '',
+    stock: 0,
+    precio_unitario: 0,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [showWarning, setShowWarning] = useState(false);
 
   useEffect(() => {
     if (product) {
@@ -39,20 +35,11 @@ export default function ProductForm({ product, onSubmit, onCancel, loading }: Pr
         nombre: product.nombre,
         descripcion: product.descripcion || '',
         codigo_barras: product.codigo_barras || '',
-        stock_actual: product.stock_actual,
-        stock_minimo: product.stock_minimo,
-        proveedor_principal_id: product.proveedor_principal_id || '',
+        stock: product.stock,
+        precio_unitario: product.precio_unitario,
       });
     }
   }, [product]);
-
-  useEffect(() => {
-    if (formData.stock_minimo > formData.stock_actual && formData.stock_actual >= 0) {
-      setShowWarning(true);
-    } else {
-      setShowWarning(false);
-    }
-  }, [formData.stock_actual, formData.stock_minimo]);
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -64,15 +51,15 @@ export default function ProductForm({ product, onSubmit, onCancel, loading }: Pr
     }
 
     if (formData.descripcion && formData.descripcion.trim().length > 500) {
-      newErrors.descripcion = 'La descripción no puede exceder 500 caracteres';
+      newErrors.descripcion = 'La descripcion no puede exceder 500 caracteres';
     }
 
-    if (formData.stock_actual < 0) {
-      newErrors.stock_actual = 'El stock actual no puede ser negativo';
+    if (formData.stock < 0) {
+      newErrors.stock = 'El stock no puede ser negativo';
     }
 
-    if (formData.stock_minimo < 0) {
-      newErrors.stock_minimo = 'El stock mínimo no puede ser negativo';
+    if (formData.precio_unitario < 0) {
+      newErrors.precio_unitario = 'El precio unitario no puede ser negativo';
     }
 
     setErrors(newErrors);
@@ -125,10 +112,10 @@ export default function ProductForm({ product, onSubmit, onCancel, loading }: Pr
         )}
       </div>
 
-      {/* Descripción */}
+      {/* Descripcion */}
       <div>
         <label className="block text-sm font-semibold text-[#374151] mb-2">
-          Descripción
+          Descripcion
         </label>
         <textarea
           value={formData.descripcion}
@@ -137,17 +124,17 @@ export default function ProductForm({ product, onSubmit, onCancel, loading }: Pr
           rows={3}
           className="w-full px-4 py-3 bg-white border border-[#E2E2D5] rounded-xl text-sm text-[#374151] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200 disabled:bg-[#F9FAFB] disabled:cursor-not-allowed resize-none"
           maxLength={500}
-          placeholder="Descripción opcional del producto..."
+          placeholder="Descripcion opcional del producto..."
         />
         {errors.descripcion && (
           <p className="mt-1.5 text-sm text-[#991B1B]">{errors.descripcion}</p>
         )}
       </div>
 
-      {/* Código de barras */}
+      {/* Codigo de barras */}
       <div>
         <label className="block text-sm font-semibold text-[#374151] mb-2">
-          Código de barras
+          Codigo de barras
         </label>
         <input
           type="text"
@@ -159,66 +146,42 @@ export default function ProductForm({ product, onSubmit, onCancel, loading }: Pr
         />
       </div>
 
-      {/* Stock actual y Stock mínimo */}
+      {/* Stock y Precio unitario */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold text-[#374151] mb-2">
-            Stock actual <span className="text-[#991B1B]">*</span>
+            Stock <span className="text-[#991B1B]">*</span>
           </label>
           <input
             type="number"
-            value={formData.stock_actual}
-            onChange={(e) => handleChange('stock_actual', parseInt(e.target.value) || 0)}
+            value={formData.stock}
+            onChange={(e) => handleChange('stock', parseInt(e.target.value) || 0)}
             disabled={loading}
             min="0"
             className="w-full px-4 py-3 bg-white border border-[#E2E2D5] rounded-xl text-sm text-[#374151] font-mono placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200 disabled:bg-[#F9FAFB] disabled:cursor-not-allowed"
           />
-          {errors.stock_actual && (
-            <p className="mt-1.5 text-sm text-[#991B1B]">{errors.stock_actual}</p>
+          {errors.stock && (
+            <p className="mt-1.5 text-sm text-[#991B1B]">{errors.stock}</p>
           )}
         </div>
 
         <div>
           <label className="block text-sm font-semibold text-[#374151] mb-2">
-            Stock mínimo <span className="text-[#991B1B]">*</span>
+            Precio unitario <span className="text-[#991B1B]">*</span>
           </label>
           <input
             type="number"
-            value={formData.stock_minimo}
-            onChange={(e) => handleChange('stock_minimo', parseInt(e.target.value) || 0)}
+            value={formData.precio_unitario}
+            onChange={(e) => handleChange('precio_unitario', parseFloat(e.target.value) || 0)}
             disabled={loading}
             min="0"
+            step="0.01"
             className="w-full px-4 py-3 bg-white border border-[#E2E2D5] rounded-xl text-sm text-[#374151] font-mono placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200 disabled:bg-[#F9FAFB] disabled:cursor-not-allowed"
           />
-          {errors.stock_minimo && (
-            <p className="mt-1.5 text-sm text-[#991B1B]">{errors.stock_minimo}</p>
+          {errors.precio_unitario && (
+            <p className="mt-1.5 text-sm text-[#991B1B]">{errors.precio_unitario}</p>
           )}
         </div>
-      </div>
-
-      {/* Warning si stock mínimo > stock actual */}
-      {showWarning && (
-        <div className="p-4 bg-[#FEF3C7] border border-[#D97706]/20 rounded-xl flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-[#D97706] flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-[#92400E]">
-            El stock mínimo es mayor al stock actual. Este producto aparecerá como bajo stock.
-          </p>
-        </div>
-      )}
-
-      {/* Proveedor principal */}
-      <div>
-        <label className="block text-sm font-semibold text-[#374151] mb-2">
-          Proveedor principal (ID)
-        </label>
-        <input
-          type="text"
-          value={formData.proveedor_principal_id}
-          onChange={(e) => handleChange('proveedor_principal_id', e.target.value)}
-          disabled={loading}
-          className="w-full px-4 py-3 bg-white border border-[#E2E2D5] rounded-xl text-sm text-[#374151] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200 disabled:bg-[#F9FAFB] disabled:cursor-not-allowed"
-          placeholder="Opcional"
-        />
       </div>
 
       {/* Botones */}

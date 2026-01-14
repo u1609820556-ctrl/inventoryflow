@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ReglaAutopedido } from '@/types';
 
-interface CreateReorderRuleData {
+// Input types para crear/actualizar reglas
+export interface CreateReorderRuleInput {
   producto_id: string;
   proveedor_id: string;
   stock_minimo: number;
@@ -11,7 +12,7 @@ interface CreateReorderRuleData {
   activa?: boolean;
 }
 
-interface UpdateReorderRuleData {
+export interface UpdateReorderRuleInput {
   producto_id?: string;
   proveedor_id?: string;
   stock_minimo?: number;
@@ -56,7 +57,7 @@ export function useReorderRules() {
     }
   }, []);
 
-  const createRule = async (data: CreateReorderRuleData): Promise<ReglaAutopedido> => {
+  const createRule = async (data: CreateReorderRuleInput): Promise<ReglaAutopedido> => {
     // Validaciones
     if (!data.producto_id) {
       throw new Error('Debe seleccionar un producto');
@@ -124,7 +125,7 @@ export function useReorderRules() {
 
   const updateRule = async (
     id: string,
-    data: UpdateReorderRuleData
+    data: UpdateReorderRuleInput
   ): Promise<ReglaAutopedido> => {
     if (!id) {
       throw new Error('ID de regla requerido');
@@ -170,13 +171,15 @@ export function useReorderRules() {
     }
   };
 
-  const toggleRule = async (id: string): Promise<void> => {
+  const toggleRule = async (id: string, activa?: boolean): Promise<ReglaAutopedido> => {
     const rule = rules.find((r) => r.id === id);
     if (!rule) {
       throw new Error('Regla no encontrada');
     }
 
-    await updateRule(id, { activa: !rule.habilitado });
+    // Si se proporciona activa, usar ese valor; si no, toggle del valor actual
+    const newActiva = activa !== undefined ? activa : !rule.activa;
+    return updateRule(id, { activa: newActiva });
   };
 
   const deleteRule = async (id: string): Promise<void> => {
@@ -213,7 +216,15 @@ export function useReorderRules() {
   };
 
   const getActiveRulesCount = (): number => {
-    return rules.filter((r) => r.habilitado).length;
+    return rules.filter((r) => r.activa).length;
+  };
+
+  const getRulesByProduct = (productoId: string): ReglaAutopedido[] => {
+    return rules.filter((r) => r.producto_id === productoId);
+  };
+
+  const getRulesByProveedor = (proveedorId: string): ReglaAutopedido[] => {
+    return rules.filter((r) => r.proveedor_id === proveedorId);
   };
 
   useEffect(() => {
@@ -230,5 +241,7 @@ export function useReorderRules() {
     toggleRule,
     deleteRule,
     getActiveRulesCount,
+    getRulesByProduct,
+    getRulesByProveedor,
   };
 }

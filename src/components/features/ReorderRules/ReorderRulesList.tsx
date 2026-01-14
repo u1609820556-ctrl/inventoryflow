@@ -8,7 +8,7 @@ interface ReorderRulesListProps {
   rules: ReglaAutopedido[];
   loading?: boolean;
   onEdit: (rule: ReglaAutopedido) => void;
-  onToggle: (id: string) => Promise<void>;
+  onToggle: (id: string) => Promise<ReglaAutopedido>;
   onDelete: (id: string) => Promise<void>;
 }
 
@@ -118,12 +118,12 @@ export default function ReorderRulesList({
                 </td>
                 <td className="px-6 py-4 text-center">
                   <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#FEF3C7] text-[#92400E]">
-                    {rule.stock_minimo_trigger}
+                    {rule.stock_minimo}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-center">
                   <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#D1FAE5] text-[#065F46]">
-                    {rule.cantidad_a_pedir}
+                    {rule.cantidad_pedido}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-center">
@@ -132,7 +132,7 @@ export default function ReorderRulesList({
                     disabled={loadingAction === rule.id}
                     className="inline-flex items-center gap-1.5 transition-colors disabled:opacity-50"
                   >
-                    {rule.habilitado ? (
+                    {rule.activa ? (
                       <>
                         <ToggleRight className="w-6 h-6 text-[#064E3B]" />
                         <span className="text-xs font-medium text-[#064E3B]">Activa</span>
@@ -210,7 +210,7 @@ export default function ReorderRulesList({
                 disabled={loadingAction === rule.id}
                 className="transition-colors disabled:opacity-50"
               >
-                {rule.habilitado ? (
+                {rule.activa ? (
                   <ToggleRight className="w-8 h-8 text-[#064E3B]" />
                 ) : (
                   <ToggleLeft className="w-8 h-8 text-[#9CA3AF]" />
@@ -221,11 +221,11 @@ export default function ReorderRulesList({
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-[#D97706]" />
-                <span className="text-xs text-[#6B7280]">Min: {rule.stock_minimo_trigger}</span>
+                <span className="text-xs text-[#6B7280]">Min: {rule.stock_minimo}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Package className="w-4 h-4 text-[#064E3B]" />
-                <span className="text-xs text-[#6B7280]">Pedir: {rule.cantidad_a_pedir}</span>
+                <span className="text-xs text-[#6B7280]">Pedir: {rule.cantidad_pedido}</span>
               </div>
             </div>
 

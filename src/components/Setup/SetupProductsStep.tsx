@@ -6,8 +6,8 @@ import { Package, Trash2 } from 'lucide-react';
 export interface ProductData {
   nombre: string;
   descripcion?: string;
-  stock_actual: number;
-  stock_minimo: number;
+  stock: number;
+  precio_unitario: number;
 }
 
 export interface SetupProductsStepProps {
@@ -20,7 +20,7 @@ export default function SetupProductsStep({ initialData, onNext, onBack }: Setup
   const [products, setProducts] = useState<ProductData[]>(
     initialData && initialData.length > 0
       ? initialData
-      : [{ nombre: '', descripcion: '', stock_actual: 0, stock_minimo: 0 }]
+      : [{ nombre: '', descripcion: '', stock: 0, precio_unitario: 0 }]
   );
   const [errors, setErrors] = useState<Record<number, Record<string, string>>>({});
 
@@ -41,13 +41,13 @@ export default function SetupProductsStep({ initialData, onNext, onBack }: Setup
         isValid = false;
       }
 
-      if (product.stock_actual < 0) {
-        productErrors.stock_actual = 'El stock no puede ser negativo';
+      if (product.stock < 0) {
+        productErrors.stock = 'El stock no puede ser negativo';
         isValid = false;
       }
 
-      if (product.stock_minimo < 0) {
-        productErrors.stock_minimo = 'El stock mínimo no puede ser negativo';
+      if (product.precio_unitario < 0) {
+        productErrors.precio_unitario = 'El precio no puede ser negativo';
         isValid = false;
       }
 
@@ -61,7 +61,7 @@ export default function SetupProductsStep({ initialData, onNext, onBack }: Setup
   };
 
   const handleAddProduct = () => {
-    setProducts([...products, { nombre: '', descripcion: '', stock_actual: 0, stock_minimo: 0 }]);
+    setProducts([...products, { nombre: '', descripcion: '', stock: 0, precio_unitario: 0 }]);
   };
 
   const handleRemoveProduct = (index: number) => {
@@ -150,7 +150,7 @@ export default function SetupProductsStep({ initialData, onNext, onBack }: Setup
 
                   <div className="md:col-span-2">
                     <label className="block text-sm font-medium text-[#374151] mb-1">
-                      Descripción (opcional)
+                      Descripcion (opcional)
                     </label>
                     <input
                       type="text"
@@ -166,33 +166,34 @@ export default function SetupProductsStep({ initialData, onNext, onBack }: Setup
                     </label>
                     <input
                       type="number"
-                      value={product.stock_actual}
+                      value={product.stock}
                       onChange={(e) =>
-                        handleProductChange(index, 'stock_actual', parseInt(e.target.value) || 0)
+                        handleProductChange(index, 'stock', parseInt(e.target.value) || 0)
                       }
                       min="0"
                       className="w-full px-3 py-2.5 border border-[#E2E2D5] rounded-lg text-[#374151] placeholder-[#9CA3AF] focus:outline-none focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B] transition-colors bg-white"
                     />
-                    {errors[index]?.stock_actual && (
-                      <p className="mt-1 text-sm text-[#991B1B]">{errors[index].stock_actual}</p>
+                    {errors[index]?.stock && (
+                      <p className="mt-1 text-sm text-[#991B1B]">{errors[index].stock}</p>
                     )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-medium text-[#374151] mb-1">
-                      Stock mínimo
+                      Precio unitario
                     </label>
                     <input
                       type="number"
-                      value={product.stock_minimo}
+                      value={product.precio_unitario}
                       onChange={(e) =>
-                        handleProductChange(index, 'stock_minimo', parseInt(e.target.value) || 0)
+                        handleProductChange(index, 'precio_unitario', parseFloat(e.target.value) || 0)
                       }
                       min="0"
+                      step="0.01"
                       className="w-full px-3 py-2.5 border border-[#E2E2D5] rounded-lg text-[#374151] placeholder-[#9CA3AF] focus:outline-none focus:border-[#064E3B] focus:ring-1 focus:ring-[#064E3B] transition-colors bg-white"
                     />
-                    {errors[index]?.stock_minimo && (
-                      <p className="mt-1 text-sm text-[#991B1B]">{errors[index].stock_minimo}</p>
+                    {errors[index]?.precio_unitario && (
+                      <p className="mt-1 text-sm text-[#991B1B]">{errors[index].precio_unitario}</p>
                     )}
                   </div>
                 </div>
@@ -214,7 +215,7 @@ export default function SetupProductsStep({ initialData, onNext, onBack }: Setup
               onClick={onBack}
               className="flex-1 px-4 py-2.5 border border-[#E2E2D5] text-[#374151] font-medium rounded-lg hover:bg-[#F5F2ED]/50 hover:border-[#9CA3AF] transition-all duration-200"
             >
-              ATRÁS
+              ATRAS
             </button>
             <button
               type="submit"

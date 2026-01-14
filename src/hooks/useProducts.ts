@@ -4,6 +4,28 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Producto } from '@/types';
 
+// Input types para crear/actualizar productos
+export interface CreateProductInput {
+  nombre: string;
+  descripcion?: string;
+  codigo_barras?: string;
+  stock?: number;
+  precio_unitario: number;
+}
+
+export interface UpdateProductInput {
+  nombre?: string;
+  descripcion?: string;
+  codigo_barras?: string;
+  stock?: number;
+  precio_unitario?: number;
+}
+
+// Validación de UUID
+const isValidUUID = (id: string): boolean => {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+};
+
 export function useProducts() {
   const [products, setProducts] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(false);
@@ -75,14 +97,7 @@ export function useProducts() {
     }
   }, [empresaId]);
 
-  const createProduct = async (data: {
-    nombre: string;
-    descripcion?: string;
-    codigo_barras?: string;
-    stock_actual: number;
-    stock_minimo: number;
-    proveedor_principal_id?: string;
-  }): Promise<Producto> => {
+  const createProduct = async (data: CreateProductInput): Promise<Producto> => {
     console.log('[useProducts] createProduct llamado con:', data);
 
     // Validaciones
@@ -94,29 +109,24 @@ export function useProducts() {
     if (!data.nombre || !data.nombre.trim()) {
       throw new Error('El nombre del producto es requerido');
     }
-    if (typeof data.stock_actual !== 'number' || data.stock_actual < 0) {
-      throw new Error('El stock actual debe ser un número >= 0');
+    if (typeof data.precio_unitario !== 'number' || data.precio_unitario < 0) {
+      throw new Error('El precio unitario debe ser un número >= 0');
     }
-    if (typeof data.stock_minimo !== 'number' || data.stock_minimo < 0) {
-      throw new Error('El stock mínimo debe ser un número >= 0');
+    if (data.stock !== undefined && (typeof data.stock !== 'number' || data.stock < 0)) {
+      throw new Error('El stock debe ser un número >= 0');
     }
 
     setLoading(true);
     setError(null);
 
     try {
-      // Validar que proveedor_principal_id es un UUID válido si se proporciona
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      const proveedorId = data.proveedor_principal_id?.trim();
-
       const insertData = {
         empresa_id: empresaId,
         nombre: data.nombre.trim(),
         descripcion: data.descripcion?.trim() || null,
         codigo_barras: data.codigo_barras?.trim() || null,
-        stock_actual: data.stock_actual,
-        stock_minimo: data.stock_minimo,
-        proveedor_principal_id: (proveedorId && uuidRegex.test(proveedorId)) ? proveedorId : null,
+        stock: data.stock ?? 0,
+        precio_unitario: data.precio_unitario,
       };
 
       console.log('[useProducts] Insertando producto:', insertData);
@@ -132,15 +142,11 @@ export function useProducts() {
 
         // Errores específicos de RLS
         if (err.code === '42501' || err.message.includes('RLS') || err.message.includes('policy')) {
-          throw new Error('Error de permisos (RLS): No tienes permiso para crear productos. Verifica la configuración de seguridad.');
-        }
-        // Error de foreign key
-        if (err.code === '23503') {
-          throw new Error('Error de referencia: El proveedor seleccionado no existe.');
+          throw new Error('Error de permisos (RLS): No tienes permiso para crear productos.');
         }
         // Error de duplicado
         if (err.code === '23505') {
-          throw new Error('Ya existe un producto con ese código de barras.');
+          throw new Error('Ya existe un producto con ese nombre en tu empresa.');
         }
 
         throw new Error(`Error al crear producto: ${err.message}`);
@@ -165,41 +171,48 @@ export function useProducts() {
 
   const updateProduct = async (
     id: string,
-    data: Partial<Omit<Producto, 'id' | 'empresa_id' | 'created_at' | 'updated_at'>>
-  ): Promise<void> => {
+    data: UpdateProductInput
+  ): Promise<Producto> => {
     console.log('[useProducts] updateProduct llamado:', { id, data });
 
     // Validar que el ID es un UUID válido
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    if (!id || typeof id !== 'string' || !uuidRegex.test(id)) {
+    if (!id || typeof id !== 'string' || !isValidUUID(id)) {
       throw new Error('ID de producto inválido');
     }
     if (!empresaId) {
       throw new Error('No se puede actualizar: empresa_id no disponible');
     }
-    if (data.stock_actual !== undefined && data.stock_actual < 0) {
-      throw new Error('El stock actual no puede ser negativo');
+    if (data.nombre !== undefined && !data.nombre.trim()) {
+      throw new Error('El nombre del producto no puede estar vacío');
     }
-    if (data.stock_minimo !== undefined && data.stock_minimo < 0) {
-      throw new Error('El stock mínimo no puede ser negativo');
+    if (data.stock !== undefined && data.stock < 0) {
+      throw new Error('El stock no puede ser negativo');
+    }
+    if (data.precio_unitario !== undefined && data.precio_unitario < 0) {
+      throw new Error('El precio unitario no puede ser negativo');
     }
 
     setLoading(true);
     setError(null);
 
     try {
-      // Limpiar datos antes de enviar - convertir strings vacíos a null para campos UUID
+      // Limpiar datos antes de enviar
       const cleanedData: Record<string, unknown> = {};
-      for (const [key, value] of Object.entries(data)) {
-        if (key === 'proveedor_principal_id') {
-          // Si es string vacío o no es UUID válido, enviar null
-          cleanedData[key] = (typeof value === 'string' && value.trim() && uuidRegex.test(value)) ? value : null;
-        } else if (typeof value === 'string') {
-          // Para otros strings, usar null si está vacío, o trim del valor
-          cleanedData[key] = value.trim() || null;
-        } else {
-          cleanedData[key] = value;
-        }
+
+      if (data.nombre !== undefined) {
+        cleanedData.nombre = data.nombre.trim();
+      }
+      if (data.descripcion !== undefined) {
+        cleanedData.descripcion = data.descripcion?.trim() || null;
+      }
+      if (data.codigo_barras !== undefined) {
+        cleanedData.codigo_barras = data.codigo_barras?.trim() || null;
+      }
+      if (data.stock !== undefined) {
+        cleanedData.stock = data.stock;
+      }
+      if (data.precio_unitario !== undefined) {
+        cleanedData.precio_unitario = data.precio_unitario;
       }
 
       console.log('[useProducts] Datos limpiados para actualizar:', cleanedData);
@@ -208,7 +221,7 @@ export function useProducts() {
         .from('productos')
         .update(cleanedData)
         .eq('id', id)
-        .eq('empresa_id', empresaId) // Seguridad adicional
+        .eq('empresa_id', empresaId)
         .select()
         .single();
 
@@ -218,10 +231,8 @@ export function useProducts() {
         if (err.code === '42501' || err.message.includes('RLS')) {
           throw new Error('Error de permisos: No tienes permiso para actualizar este producto.');
         }
-
-        // Error específico de UUID inválido
-        if (err.message.includes('invalid input syntax for type uuid')) {
-          throw new Error('Error: Uno de los campos UUID tiene un formato inválido.');
+        if (err.code === '23505') {
+          throw new Error('Ya existe un producto con ese nombre en tu empresa.');
         }
 
         throw new Error(`Error al actualizar: ${err.message}`);
@@ -233,6 +244,7 @@ export function useProducts() {
 
       console.log('[useProducts] Producto actualizado:', updatedProduct.id);
       setProducts((prev) => prev.map((p) => (p.id === id ? updatedProduct : p)));
+      return updatedProduct;
     } catch (err) {
       console.error('[useProducts] Error en updateProduct:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error al actualizar producto';
@@ -246,7 +258,7 @@ export function useProducts() {
   const deleteProduct = async (id: string): Promise<void> => {
     console.log('[useProducts] deleteProduct llamado:', id);
 
-    if (!id || typeof id !== 'string') {
+    if (!id || typeof id !== 'string' || !isValidUUID(id)) {
       throw new Error('ID de producto inválido');
     }
     if (!empresaId) {
@@ -261,13 +273,13 @@ export function useProducts() {
         .from('productos')
         .delete()
         .eq('id', id)
-        .eq('empresa_id', empresaId); // Seguridad adicional
+        .eq('empresa_id', empresaId);
 
       if (err) {
         console.error('[useProducts] Error al eliminar:', err);
 
         if (err.code === '23503') {
-          throw new Error('No se puede eliminar: Este producto está referenciado en otros registros (movimientos, pedidos, etc.)');
+          throw new Error('No se puede eliminar: Este producto está referenciado en reglas de autopedido u otros registros.');
         }
         if (err.code === '42501' || err.message.includes('RLS')) {
           throw new Error('Error de permisos: No tienes permiso para eliminar este producto.');
@@ -288,8 +300,8 @@ export function useProducts() {
     }
   };
 
-  const getProductsWithLowStock = (): Producto[] => {
-    return products.filter((p) => p.stock_actual < p.stock_minimo);
+  const getProductsWithLowStock = (threshold?: number): Producto[] => {
+    return products.filter((p) => threshold ? p.stock < threshold : p.stock <= 0);
   };
 
   const searchProducts = (query: string): Producto[] => {
@@ -297,7 +309,12 @@ export function useProducts() {
       return products;
     }
     const lowerQuery = query.toLowerCase().trim();
-    return products.filter((p) => p.nombre.toLowerCase().includes(lowerQuery));
+    return products.filter(
+      (p) =>
+        p.nombre.toLowerCase().includes(lowerQuery) ||
+        p.descripcion?.toLowerCase().includes(lowerQuery) ||
+        p.codigo_barras?.toLowerCase().includes(lowerQuery)
+    );
   };
 
   // Cargar productos cuando empresaId esté disponible

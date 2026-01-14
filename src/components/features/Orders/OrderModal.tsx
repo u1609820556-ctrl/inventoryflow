@@ -1,14 +1,21 @@
 'use client';
 
+// ============================================================
+// COMPONENTE DEPRECADO - OrderModal
+// ============================================================
+// Este componente usaba el tipo 'Pedido' que fue eliminado.
+// Se mantiene actualizado para usar PedidoGenerado.
+// ============================================================
+
 import { useEffect } from 'react';
-import type { Pedido, Proveedor, Producto } from '@/types';
+import type { PedidoGenerado, Proveedor, Producto } from '@/types';
 import OrderForm, { type OrderFormData } from './OrderForm';
 import { X } from 'lucide-react';
 
 export interface OrderModalProps {
   isOpen: boolean;
   onClose: () => void;
-  order?: Pedido | null;
+  order?: PedidoGenerado | null;
   proveedores: Proveedor[];
   products: Producto[];
   onSave: (data: OrderFormData) => Promise<void>;
@@ -56,7 +63,6 @@ export default function OrderModal({
       onClick={handleBackdropClick}
     >
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-[#E2E2D5]">
-        {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[#E2E2D5]">
           <h2 className="font-serif text-xl md:text-2xl font-bold text-[#064E3B]">
             {order ? 'Editar Pedido' : 'Nuevo Pedido'}
@@ -71,7 +77,6 @@ export default function OrderModal({
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-6">
           <OrderForm
             order={order}

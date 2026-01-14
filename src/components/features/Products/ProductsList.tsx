@@ -30,16 +30,9 @@ export default function ProductsList({
     onSearch(query);
   };
 
-  const getStockStatus = (product: Producto) => {
-    if (product.stock_actual < product.stock_minimo) {
-      return { color: 'text-[#991B1B]', bgColor: 'bg-[#FEF2F2]', label: 'Bajo' };
-    }
-    return { color: 'text-[#064E3B]', bgColor: 'bg-[#F0FDF4]', label: 'OK' };
-  };
-
   const handleDeleteClick = (product: Producto) => {
     const confirmDelete = window.confirm(
-      `¿Estás seguro de eliminar el producto "${product.nombre}"?`
+      `Estas seguro de eliminar el producto "${product.nombre}"?`
     );
     if (confirmDelete) {
       onDelete(product.id);
@@ -49,6 +42,13 @@ export default function ProductsList({
 
   const toggleMenu = (productId: string) => {
     setOpenMenuId(openMenuId === productId ? null : productId);
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN'
+    }).format(price);
   };
 
   if (loading) {
@@ -66,7 +66,7 @@ export default function ProductsList({
 
   return (
     <div className="space-y-6">
-      {/* Header con búsqueda y botón crear */}
+      {/* Header con busqueda y boton crear */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="relative w-full sm:w-96">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF]" />
@@ -98,7 +98,7 @@ export default function ProductsList({
               {searchQuery ? 'No se encontraron productos' : 'No hay productos registrados'}
             </p>
             <p className="text-sm text-[#9CA3AF] mt-1">
-              {searchQuery ? 'Intenta con otro término de búsqueda' : 'Comienza agregando tu primer producto'}
+              {searchQuery ? 'Intenta con otro termino de busqueda' : 'Comienza agregando tu primer producto'}
             </p>
           </div>
         ) : (
@@ -112,16 +112,13 @@ export default function ProductsList({
                       Nombre
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-[#6B7280] uppercase tracking-wider">
-                      Descripción
+                      Descripcion
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-[#6B7280] uppercase tracking-wider">
-                      Stock Actual
+                      Stock
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-[#6B7280] uppercase tracking-wider">
-                      Stock Mínimo
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-bold text-[#6B7280] uppercase tracking-wider">
-                      Estado
+                      Precio
                     </th>
                     <th className="px-6 py-4 text-right text-xs font-bold text-[#6B7280] uppercase tracking-wider">
                       Acciones
@@ -130,8 +127,7 @@ export default function ProductsList({
                 </thead>
                 <tbody className="divide-y divide-[#E2E2D5]">
                   {products.map((product) => {
-                    const status = getStockStatus(product);
-                    const isLowStock = product.stock_actual < product.stock_minimo;
+                    const isLowStock = product.stock <= 0;
                     return (
                       <tr
                         key={product.id}
@@ -157,16 +153,12 @@ export default function ProductsList({
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`text-sm font-mono font-semibold ${isLowStock ? 'text-[#991B1B]' : 'text-[#374151]'}`}>
-                            {product.stock_actual}
+                            {product.stock}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm font-mono text-[#6B7280]">{product.stock_minimo}</span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${status.bgColor} ${status.color}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${isLowStock ? 'bg-[#991B1B]' : 'bg-[#064E3B]'}`}></span>
-                            {status.label}
+                          <span className="text-sm font-mono text-[#6B7280]">
+                            {formatPrice(product.precio_unitario)}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -208,8 +200,7 @@ export default function ProductsList({
             {/* Mobile cards */}
             <div className="md:hidden divide-y divide-[#E2E2D5]">
               {products.map((product) => {
-                const status = getStockStatus(product);
-                const isLowStock = product.stock_actual < product.stock_minimo;
+                const isLowStock = product.stock <= 0;
                 return (
                   <div
                     key={product.id}
@@ -229,50 +220,46 @@ export default function ProductsList({
                           </p>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 ml-3">
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${status.bgColor} ${status.color}`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${isLowStock ? 'bg-[#991B1B]' : 'bg-[#064E3B]'}`}></span>
-                          {status.label}
-                        </span>
-                        <div className="relative">
-                          <button
-                            onClick={() => toggleMenu(product.id)}
-                            className="p-1.5 text-[#9CA3AF] hover:text-[#374151] hover:bg-[#E2E2D5]/50 rounded-lg transition-all duration-200"
-                          >
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
-                          {openMenuId === product.id && (
-                            <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-lg z-10 border border-[#E2E2D5] overflow-hidden">
-                              <button
-                                onClick={() => {
-                                  onEdit(product);
-                                  setOpenMenuId(null);
-                                }}
-                                className="block w-full text-left px-4 py-2.5 text-sm text-[#374151] hover:bg-[#F9FAFB] transition-colors"
-                              >
-                                Editar
-                              </button>
-                              <button
-                                onClick={() => handleDeleteClick(product)}
-                                className="block w-full text-left px-4 py-2.5 text-sm text-[#991B1B] hover:bg-[#FEF2F2] transition-colors"
-                              >
-                                Eliminar
-                              </button>
-                            </div>
-                          )}
-                        </div>
+                      <div className="relative ml-3">
+                        <button
+                          onClick={() => toggleMenu(product.id)}
+                          className="p-1.5 text-[#9CA3AF] hover:text-[#374151] hover:bg-[#E2E2D5]/50 rounded-lg transition-all duration-200"
+                        >
+                          <MoreVertical className="w-4 h-4" />
+                        </button>
+                        {openMenuId === product.id && (
+                          <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-lg z-10 border border-[#E2E2D5] overflow-hidden">
+                            <button
+                              onClick={() => {
+                                onEdit(product);
+                                setOpenMenuId(null);
+                              }}
+                              className="block w-full text-left px-4 py-2.5 text-sm text-[#374151] hover:bg-[#F9FAFB] transition-colors"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(product)}
+                              className="block w-full text-left px-4 py-2.5 text-sm text-[#991B1B] hover:bg-[#FEF2F2] transition-colors"
+                            >
+                              Eliminar
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div className="bg-[#F9FAFB] rounded-lg px-3 py-2">
-                        <span className="text-[#9CA3AF] text-xs block mb-0.5">Stock actual</span>
+                        <span className="text-[#9CA3AF] text-xs block mb-0.5">Stock</span>
                         <span className={`font-mono font-semibold ${isLowStock ? 'text-[#991B1B]' : 'text-[#374151]'}`}>
-                          {product.stock_actual}
+                          {product.stock}
                         </span>
                       </div>
                       <div className="bg-[#F9FAFB] rounded-lg px-3 py-2">
-                        <span className="text-[#9CA3AF] text-xs block mb-0.5">Stock mínimo</span>
-                        <span className="font-mono font-medium text-[#6B7280]">{product.stock_minimo}</span>
+                        <span className="text-[#9CA3AF] text-xs block mb-0.5">Precio</span>
+                        <span className="font-mono font-medium text-[#6B7280]">
+                          {formatPrice(product.precio_unitario)}
+                        </span>
                       </div>
                     </div>
                   </div>

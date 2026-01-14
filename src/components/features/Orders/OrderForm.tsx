@@ -1,7 +1,14 @@
 'use client';
 
+// ============================================================
+// COMPONENTE DEPRECADO - OrderForm
+// ============================================================
+// Este componente usaba el tipo 'Pedido' que fue eliminado.
+// Se mantiene actualizado para usar PedidoGenerado.
+// ============================================================
+
 import { useState, useEffect, useMemo } from 'react';
-import type { Pedido, Proveedor, Producto } from '@/types';
+import type { PedidoGenerado, Proveedor, Producto } from '@/types';
 import OrderLineItem from './OrderLineItem';
 
 export interface OrderFormData {
@@ -17,7 +24,7 @@ export interface OrderFormData {
 }
 
 export interface OrderFormProps {
-  order?: Pedido | null;
+  order?: PedidoGenerado | null;
   proveedores: Proveedor[];
   products: Producto[];
   onSubmit: (data: OrderFormData) => Promise<void>;
@@ -44,8 +51,17 @@ export default function OrderForm({
 
   useEffect(() => {
     if (order) {
-      // TODO: Cargar datos del pedido si es edición
-      // Por ahora solo soportamos creación
+      // Cargar datos del pedido si es edición
+      setFormData({
+        proveedor_id: order.proveedor_id,
+        lineas: order.datos_pedido.map(l => ({
+          producto_id: l.producto_id,
+          cantidad: l.cantidad,
+          precio_unitario: l.precio_unitario,
+        })),
+        requerir_aprobacion: true,
+        notas: order.notas || '',
+      });
     }
   }, [order]);
 
@@ -117,7 +133,6 @@ export default function OrderForm({
         ...prev,
         lineas: prev.lineas.filter((_, i) => i !== index),
       }));
-      // Limpiar errores de la línea eliminada
       setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[`linea_${index}_producto`];
@@ -135,7 +150,6 @@ export default function OrderForm({
         i === index ? { ...linea, [field]: value } : linea
       ),
     }));
-    // Limpiar error del campo actualizado
     const errorKey = `linea_${index}_${field === 'producto_id' ? 'producto' : field === 'cantidad' ? 'cantidad' : 'precio'}`;
     if (errors[errorKey]) {
       setErrors((prev) => {
@@ -146,7 +160,6 @@ export default function OrderForm({
     }
   };
 
-  // Calcular total del pedido
   const totalPedido = useMemo(() => {
     return formData.lineas.reduce((sum, linea) => {
       return sum + linea.cantidad * linea.precio_unitario;
@@ -155,7 +168,6 @@ export default function OrderForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {/* Proveedor */}
       <div>
         <label className="block text-sm font-semibold text-[#374151] mb-2">
           Proveedor <span className="text-[#991B1B]">*</span>
@@ -178,7 +190,6 @@ export default function OrderForm({
         )}
       </div>
 
-      {/* Líneas de pedido */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <label className="block text-sm font-semibold text-[#374151]">
@@ -213,7 +224,6 @@ export default function OrderForm({
           <p className="mt-2 text-sm text-[#991B1B]">{errors.lineas}</p>
         )}
 
-        {/* Total */}
         <div className="mt-4 p-4 bg-[#064E3B]/5 rounded-xl border border-[#064E3B]/10">
           <div className="flex justify-between items-center">
             <span className="text-sm font-semibold text-[#064E3B]">
@@ -226,7 +236,6 @@ export default function OrderForm({
         </div>
       </div>
 
-      {/* Requerir aprobación */}
       <div className="flex items-start p-4 bg-[#F9FAFB] rounded-xl border border-[#E2E2D5]">
         <input
           type="checkbox"
@@ -247,7 +256,6 @@ export default function OrderForm({
         </label>
       </div>
 
-      {/* Notas */}
       <div>
         <label className="block text-sm font-semibold text-[#374151] mb-2">
           Notas
@@ -262,7 +270,6 @@ export default function OrderForm({
         />
       </div>
 
-      {/* Botones */}
       <div className="flex gap-3 pt-4">
         <button
           type="button"

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, getEmpresaFromUser } from '@/lib/supabase-server';
 
+// Validación de UUID
+function isValidUUID(id: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+}
+
 interface UpdateRuleBody {
   producto_id?: string;
   proveedor_id?: string;
@@ -14,12 +19,15 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  console.log('[API reorder-rules/[id]] PUT iniciado');
+
   try {
     const { id } = await params;
 
-    if (!id) {
+    // Validar UUID
+    if (!id || !isValidUUID(id)) {
       return NextResponse.json(
-        { error: 'ID de regla requerido' },
+        { error: 'ID de regla inválido' },
         { status: 400 }
       );
     }
@@ -62,17 +70,57 @@ export async function PUT(
       );
     }
 
-    // Construir objeto de actualización
-    const updateData: Record<string, unknown> = {
-      updated_at: new Date().toISOString(),
-    };
+    // Construir objeto de actualización (con nombres de campos actualizados)
+    const updateData: Record<string, unknown> = {};
 
     if (body.producto_id !== undefined) {
+      if (!isValidUUID(body.producto_id)) {
+        return NextResponse.json(
+          { error: 'producto_id no es un UUID válido' },
+          { status: 400 }
+        );
+      }
+      // Verificar que el producto existe y pertenece a la empresa
+      const { data: producto, error: productoError } = await supabase
+        .from('productos')
+        .select('id')
+        .eq('id', body.producto_id)
+        .eq('empresa_id', empresa.id)
+        .single();
+
+      if (productoError || !producto) {
+        return NextResponse.json(
+          { error: 'Producto no encontrado o no pertenece a esta empresa' },
+          { status: 400 }
+        );
+      }
       updateData.producto_id = body.producto_id;
     }
+
     if (body.proveedor_id !== undefined) {
+      if (!isValidUUID(body.proveedor_id)) {
+        return NextResponse.json(
+          { error: 'proveedor_id no es un UUID válido' },
+          { status: 400 }
+        );
+      }
+      // Verificar que el proveedor existe y pertenece a la empresa
+      const { data: proveedor, error: proveedorError } = await supabase
+        .from('proveedores')
+        .select('id')
+        .eq('id', body.proveedor_id)
+        .eq('empresa_id', empresa.id)
+        .single();
+
+      if (proveedorError || !proveedor) {
+        return NextResponse.json(
+          { error: 'Proveedor no encontrado o no pertenece a esta empresa' },
+          { status: 400 }
+        );
+      }
       updateData.proveedor_id = body.proveedor_id;
     }
+
     if (body.stock_minimo !== undefined) {
       if (typeof body.stock_minimo !== 'number' || body.stock_minimo < 0) {
         return NextResponse.json(
@@ -80,8 +128,9 @@ export async function PUT(
           { status: 400 }
         );
       }
-      updateData.stock_minimo_trigger = body.stock_minimo;
+      updateData.stock_minimo = body.stock_minimo;
     }
+
     if (body.cantidad_pedido !== undefined) {
       if (typeof body.cantidad_pedido !== 'number' || body.cantidad_pedido <= 0) {
         return NextResponse.json(
@@ -89,10 +138,19 @@ export async function PUT(
           { status: 400 }
         );
       }
-      updateData.cantidad_a_pedir = body.cantidad_pedido;
+      updateData.cantidad_pedido = body.cantidad_pedido;
     }
+
     if (body.activa !== undefined) {
-      updateData.habilitado = body.activa;
+      updateData.activa = body.activa;
+    }
+
+    // Si no hay nada que actualizar
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json(
+        { error: 'No se proporcionaron campos para actualizar' },
+        { status: 400 }
+      );
     }
 
     // Actualizar regla
@@ -100,13 +158,22 @@ export async function PUT(
       .from('reglas_autopedido')
       .update(updateData)
       .eq('id', id)
-      .select('*, productos(nombre), proveedores(nombre)')
+      .select('*, productos(id, nombre), proveedores(id, nombre)')
       .single();
 
     if (error) {
+      console.error('[API reorder-rules/[id]] Error actualizando:', error);
+
+      let errorMessage = 'Error al actualizar la regla';
+      if (error.code === '42501') {
+        errorMessage = 'Error de permisos: No tienes permiso para actualizar esta regla.';
+      } else if (error.code === '23505') {
+        errorMessage = 'Ya existe una regla para esta combinación de producto y proveedor.';
+      }
+
       return NextResponse.json(
         {
-          error: 'Error al actualizar la regla',
+          error: errorMessage,
           details: error.message,
           code: error.code,
         },
@@ -114,6 +181,7 @@ export async function PUT(
       );
     }
 
+    console.log('[API reorder-rules/[id]] Regla actualizada:', id);
     return NextResponse.json({
       message: 'Regla actualizada',
       data,
@@ -135,12 +203,15 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  console.log('[API reorder-rules/[id]] DELETE iniciado');
+
   try {
     const { id } = await params;
 
-    if (!id) {
+    // Validar UUID
+    if (!id || !isValidUUID(id)) {
       return NextResponse.json(
-        { error: 'ID de regla requerido' },
+        { error: 'ID de regla inválido' },
         { status: 400 }
       );
     }
@@ -180,6 +251,7 @@ export async function DELETE(
       .eq('empresa_id', empresa.id);
 
     if (error) {
+      console.error('[API reorder-rules/[id]] Error eliminando:', error);
       return NextResponse.json(
         {
           error: 'Error al eliminar la regla',
@@ -190,6 +262,7 @@ export async function DELETE(
       );
     }
 
+    console.log('[API reorder-rules/[id]] Regla eliminada:', id);
     return NextResponse.json({ message: 'Regla eliminada' });
   } catch (error) {
     console.error('[API reorder-rules/[id]] Error inesperado en DELETE:', error);

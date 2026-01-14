@@ -1,11 +1,18 @@
 'use client';
 
-import type { Pedido } from '@/types';
+// ============================================================
+// COMPONENTE DEPRECADO - OrdersList
+// ============================================================
+// Este componente usaba el tipo 'Pedido' que fue eliminado.
+// Se mantiene como stub para evitar errores de importación.
+// ============================================================
+
+import type { PedidoGenerado, EstadoPedidoGenerado } from '@/types';
 import { Plus, Check, X, Send, Clock, CheckCircle, XCircle, Package, Truck, AlertCircle } from 'lucide-react';
 
 export interface OrdersListProps {
-  orders: Pedido[];
-  onEdit: (order: Pedido) => void;
+  orders: PedidoGenerado[];
+  onEdit: (order: PedidoGenerado) => void;
   onCreate: () => void;
   onApprove: (id: string) => Promise<void>;
   onReject: (id: string) => Promise<void>;
@@ -25,42 +32,37 @@ export default function OrdersList({
   loading,
   activeTab,
 }: OrdersListProps) {
-  const getStatusStyles = (estado: Pedido['estado']) => {
+  const getStatusStyles = (estado: EstadoPedidoGenerado) => {
     const styles = {
-      Borrador: { bg: 'bg-[#F9FAFB]', text: 'text-[#6B7280]', border: 'border-[#E2E2D5]', icon: Package },
-      Pendiente_Aprobacion: { bg: 'bg-[#FEF3C7]', text: 'text-[#92400E]', border: 'border-[#D97706]/20', icon: Clock },
-      Aprobado: { bg: 'bg-[#F0FDF4]', text: 'text-[#064E3B]', border: 'border-[#064E3B]/20', icon: CheckCircle },
-      Enviado: { bg: 'bg-[#EFF6FF]', text: 'text-[#1D4ED8]', border: 'border-[#1D4ED8]/20', icon: Truck },
-      Recibido: { bg: 'bg-[#F5F3FF]', text: 'text-[#7C3AED]', border: 'border-[#7C3AED]/20', icon: Package },
-      Cancelado: { bg: 'bg-[#FEF2F2]', text: 'text-[#991B1B]', border: 'border-[#991B1B]/20', icon: XCircle },
+      pending_review: { bg: 'bg-[#FEF3C7]', text: 'text-[#92400E]', border: 'border-[#D97706]/20', icon: Clock },
+      sent: { bg: 'bg-[#EFF6FF]', text: 'text-[#1D4ED8]', border: 'border-[#1D4ED8]/20', icon: Truck },
+      completed: { bg: 'bg-[#F5F3FF]', text: 'text-[#7C3AED]', border: 'border-[#7C3AED]/20', icon: Package },
+      cancelled: { bg: 'bg-[#FEF2F2]', text: 'text-[#991B1B]', border: 'border-[#991B1B]/20', icon: XCircle },
     };
 
-    return styles[estado] || styles.Borrador;
+    return styles[estado] || styles.pending_review;
   };
 
-  const getStatusLabel = (estado: Pedido['estado']) => {
+  const getStatusLabel = (estado: EstadoPedidoGenerado) => {
     const labels = {
-      Borrador: 'Borrador',
-      Pendiente_Aprobacion: 'Pendiente',
-      Aprobado: 'Aprobado',
-      Enviado: 'Enviado',
-      Recibido: 'Recibido',
-      Cancelado: 'Cancelado',
+      pending_review: 'Pendiente',
+      sent: 'Enviado',
+      completed: 'Completado',
+      cancelled: 'Cancelado',
     };
     return labels[estado] || estado;
   };
 
-  const getBorderLeftColor = (estado: Pedido['estado']) => {
+  const getBorderLeftColor = (estado: EstadoPedidoGenerado) => {
     switch (estado) {
-      case 'Pendiente_Aprobacion':
+      case 'pending_review':
         return '#D97706'; // Orange
-      case 'Aprobado':
-      case 'Enviado':
-        return '#064E3B'; // Green
-      case 'Cancelado':
-        return '#991B1B'; // Red
-      case 'Recibido':
+      case 'sent':
+        return '#1D4ED8'; // Blue
+      case 'completed':
         return '#7C3AED'; // Purple
+      case 'cancelled':
+        return '#991B1B'; // Red
       default:
         return '#9CA3AF'; // Gray
     }
@@ -160,28 +162,24 @@ export default function OrdersList({
                     <div className="flex-1">
                       <div className="flex flex-wrap items-center gap-2 mb-2">
                         <h3 className="text-sm font-bold text-[#374151]">
-                          {order.numero_pedido}
+                          ${order.total_estimado.toFixed(2)}
                         </h3>
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${statusStyles.bg} ${statusStyles.text} ${statusStyles.border}`}>
                           <StatusIcon className="w-3 h-3" />
                           {getStatusLabel(order.estado)}
                         </span>
-                        {order.numero_pedido.startsWith('AUTO-') && (
-                          <span className="px-2 py-0.5 bg-[#E2E2D5] text-[#374151] rounded-full text-xs font-bold">
-                            AUTO
-                          </span>
-                        )}
+                        <span className="px-2 py-0.5 bg-[#E2E2D5] text-[#374151] rounded-full text-xs font-bold">
+                          AUTO
+                        </span>
                       </div>
                       <div className="text-sm text-[#6B7280] space-y-1">
                         <p>
                           <span className="font-medium text-[#374151]">Proveedor:</span>{' '}
-                          {typeof order.proveedores === 'object' && order.proveedores !== null
-                            ? (order.proveedores as { nombre?: string }).nombre || 'N/A'
-                            : 'N/A'}
+                          {order.proveedores?.nombre || 'N/A'}
                         </p>
                         <p>
                           <span className="font-medium text-[#374151]">Creado:</span>{' '}
-                          {formatDate(order.fecha_creacion)}
+                          {formatDate(order.created_at)}
                         </p>
                         {order.notas && (
                           <p className="text-xs italic text-[#9CA3AF] bg-[#F9FAFB] px-2 py-1 rounded mt-2 border border-[#E2E2D5]">
@@ -193,7 +191,7 @@ export default function OrdersList({
 
                     {/* Acciones según estado */}
                     <div className="flex flex-wrap gap-2">
-                      {order.estado === 'Pendiente_Aprobacion' && (
+                      {order.estado === 'pending_review' && (
                         <>
                           <button
                             onClick={() => handleApprove(order.id)}
@@ -211,25 +209,7 @@ export default function OrdersList({
                           </button>
                         </>
                       )}
-                      {order.estado === 'Aprobado' && (
-                        <>
-                          <button
-                            onClick={() => handleMarkAsSent(order.id)}
-                            className="px-4 py-2 text-sm font-semibold bg-[#1D4ED8] text-[#F5F2ED] rounded-lg hover:opacity-90 transition-all duration-200 flex items-center gap-1.5"
-                          >
-                            <Send className="w-4 h-4" strokeWidth={2} />
-                            Marcar Enviado
-                          </button>
-                          <button
-                            onClick={() => handleCancel(order.id)}
-                            className="px-4 py-2 text-sm font-semibold border border-[#E2E2D5] text-[#6B7280] rounded-lg hover:bg-[#F9FAFB] transition-all duration-200 flex items-center gap-1.5"
-                          >
-                            <X className="w-4 h-4" strokeWidth={2} />
-                            Cancelar
-                          </button>
-                        </>
-                      )}
-                      {order.estado === 'Enviado' && (
+                      {order.estado === 'sent' && (
                         <span className="px-4 py-2 text-sm font-medium text-[#1D4ED8] italic flex items-center gap-1.5">
                           <Truck className="w-4 h-4" />
                           En tránsito

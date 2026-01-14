@@ -1,10 +1,18 @@
 'use client';
 
+// ============================================================
+// COMPONENTE DEPRECADO - PendingOrdersPanel
+// ============================================================
+// Este componente usaba el tipo 'Pedido' que fue eliminado en la
+// reestructuración 2.0. Ahora los pedidos se manejan a través de
+// 'pedidos_generados' usando PedidoGenerado.
+// ============================================================
+
 import { useState } from 'react';
-import type { Pedido } from '@/types';
+import type { PedidoGenerado } from '@/types';
 
 export interface PendingOrdersPanelProps {
-  orders: Pedido[];
+  orders: PedidoGenerado[];
   onApprove: (id: string) => Promise<void>;
   onReject: (id: string) => Promise<void>;
 }
@@ -92,14 +100,14 @@ export default function PendingOrdersPanel({
                       AUTO
                     </span>
                     <span className="text-xs font-medium text-gray-900">
-                      Pedido #{order.numero_pedido}
+                      ${order.total_estimado.toFixed(2)}
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 flex items-center gap-1.5">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    {formatDate(order.fecha_creacion)}
+                    {formatDate(order.created_at)}
                   </p>
                 </div>
               </div>

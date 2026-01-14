@@ -6,11 +6,10 @@ import Link from 'next/link';
 import AppLayout from '@/components/AppLayout';
 import { useCompany } from '@/hooks/useCompany';
 import { useProducts } from '@/hooks/useProducts';
-import { useOrders } from '@/hooks/useOrders';
 import { useReorderRules } from '@/hooks/useReorderRules';
 import { useGeneratedOrders } from '@/hooks/useGeneratedOrders';
 import { authHelpers } from '@/lib/supabase';
-import type { Producto, Pedido } from '@/types';
+import type { Producto } from '@/types';
 import {
   Package,
   AlertCircle,
@@ -39,24 +38,27 @@ export default function DashboardPage() {
     }
   }, [company, companyLoading, router]);
   const { products, loading: productsLoading } = useProducts();
-  const { orders, loading: ordersLoading, approveOrder, rejectOrder } = useOrders();
   const { rules, getActiveRulesCount } = useReorderRules();
-  const { orders: generatedOrders, getPendingOrdersCount, getSentOrdersThisWeek } = useGeneratedOrders();
+  const { orders: generatedOrders, loading: ordersLoading, getPendingOrdersCount, getSentOrdersThisWeek } = useGeneratedOrders();
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
 
   const totalStock = useMemo(() => {
-    return products.reduce((sum, product) => sum + product.stock_actual, 0);
+    return products.reduce((sum, product) => sum + product.stock, 0);
   }, [products]);
 
   const lowStockProducts = useMemo(() => {
-    return products.filter((p) => p.stock_actual < p.stock_minimo);
+    // Usar las reglas de autopedido para determinar productos bajo stock
+    return products.filter((p) => {
+      const rule = rules.find(r => r.producto_id === p.id && r.activa);
+      return rule ? p.stock < rule.stock_minimo : false;
+    });
   }, [products]);
 
   const pendingOrders = useMemo(() => {
-    return orders.filter((order) => order.estado === 'Pendiente_Aprobacion');
-  }, [orders]);
+    return generatedOrders.filter((order) => order.estado === 'pending_review');
+  }, [generatedOrders]);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
@@ -74,7 +76,8 @@ export default function DashboardPage() {
   const handleApprove = async (id: string) => {
     setLoadingOrderId(id);
     try {
-      await approveOrder(id);
+      // TODO: Implement approve via API - for now redirect to orders page
+      alert('Para aprobar este pedido, ve a la página de Pedidos');
     } catch (err) {
       console.error('Failed to approve order:', err);
       alert('Error al aprobar pedido');
@@ -86,7 +89,8 @@ export default function DashboardPage() {
   const handleReject = async (id: string) => {
     setLoadingOrderId(id);
     try {
-      await rejectOrder(id);
+      // TODO: Implement reject via API - for now redirect to orders page
+      alert('Para rechazar este pedido, ve a la página de Pedidos');
     } catch (err) {
       console.error('Failed to reject order:', err);
       alert('Error al rechazar pedido');
@@ -113,7 +117,9 @@ export default function DashboardPage() {
   };
 
   const getStockPercentage = (product: Producto) => {
-    return (product.stock_actual / product.stock_minimo) * 100;
+    const rule = rules.find(r => r.producto_id === product.id && r.activa);
+    const minimo = rule?.stock_minimo || 1;
+    return (product.stock / minimo) * 100;
   };
 
   if (companyLoading || productsLoading || ordersLoading) {
@@ -303,11 +309,11 @@ export default function DashboardPage() {
                               <p className="text-xs md:text-sm text-[#9CA3AF] mt-0.5">
                                 Stock:{' '}
                                 <span className={`font-mono font-medium ${isCritical ? 'text-[#991B1B]' : 'text-[#6B7280]'}`}>
-                                  {product.stock_actual}
+                                  {product.stock}
                                 </span>{' '}
                                 / Mín:{' '}
                                 <span className="font-mono font-medium text-[#6B7280]">
-                                  {product.stock_minimo}
+                                  {rules.find(r => r.producto_id === product.id)?.stock_minimo || '-'}
                                 </span>
                               </p>
                             </div>
@@ -387,7 +393,7 @@ export default function DashboardPage() {
                             AUTO
                           </span>
                           <span className="text-xs md:text-sm font-bold text-[#374151]">
-                            Pedido #{order.numero_pedido}
+                            ${order.total_estimado.toFixed(2)}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 text-xs md:text-sm text-[#9CA3AF]">
@@ -400,7 +406,7 @@ export default function DashboardPage() {
                         </div>
                         <div className="flex items-center gap-1.5 text-xs text-[#9CA3AF] mt-1">
                           <Clock className="w-3 h-3" strokeWidth={2} />
-                          <span>{formatDate(order.fecha_creacion)}</span>
+                          <span>{formatDate(order.created_at)}</span>
                         </div>
                       </div>
 

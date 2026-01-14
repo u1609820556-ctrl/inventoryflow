@@ -46,9 +46,9 @@ export default function ReorderRuleModal({
       setFormData({
         producto_id: rule.producto_id,
         proveedor_id: rule.proveedor_id,
-        stock_minimo: rule.stock_minimo_trigger,
-        cantidad_pedido: rule.cantidad_a_pedir,
-        activa: rule.habilitado,
+        stock_minimo: rule.stock_minimo,
+        cantidad_pedido: rule.cantidad_pedido,
+        activa: rule.activa,
       });
     } else {
       setFormData({
@@ -146,7 +146,7 @@ export default function ReorderRuleModal({
                 <option value="">Seleccionar producto...</option>
                 {products.map((product) => (
                   <option key={product.id} value={product.id}>
-                    {product.nombre} (Stock: {product.stock_actual})
+                    {product.nombre} (Stock: {product.stock})
                   </option>
                 ))}
               </select>

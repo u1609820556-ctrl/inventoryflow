@@ -118,8 +118,8 @@ export default function SetupContainer() {
         db.productos.create({
           nombre: product.nombre,
           descripcion: product.descripcion || null,
-          stock_actual: product.stock_actual,
-          stock_minimo: product.stock_minimo,
+          stock: product.stock,
+          precio_unitario: product.precio_unitario,
         })
       );
       const productResults = await Promise.all(productPromises);

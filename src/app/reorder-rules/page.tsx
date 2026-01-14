@@ -50,7 +50,7 @@ export default function ReorderRulesPage() {
     }
   };
 
-  const activeRulesCount = rules.filter((r) => r.habilitado).length;
+  const activeRulesCount = rules.filter((r) => r.activa).length;
   const totalRulesCount = rules.length;
 
   return (

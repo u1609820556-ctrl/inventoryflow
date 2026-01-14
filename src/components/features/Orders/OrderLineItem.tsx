@@ -1,5 +1,12 @@
 'use client';
 
+// ============================================================
+// COMPONENTE DEPRECADO - OrderLineItem
+// ============================================================
+// Este componente se usaba para el viejo sistema de pedidos.
+// Se mantiene como stub para evitar errores de importación.
+// ============================================================
+
 import type { Producto } from '@/types';
 import { Trash2 } from 'lucide-react';
 
@@ -57,7 +64,7 @@ export default function OrderLineItem({
             <option value="">Seleccionar...</option>
             {products.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.nombre} (Stock: {p.stock_actual})
+                {p.nombre} (Stock: {p.stock})
               </option>
             ))}
           </select>

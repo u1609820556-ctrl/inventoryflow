@@ -4,11 +4,31 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Proveedor } from '@/types';
 
-// Validación simple de email
+// Input types para crear/actualizar proveedores
+export interface CreateProveedorInput {
+  nombre: string;
+  email?: string;
+  telefono?: string;
+  direccion?: string;
+}
+
+export interface UpdateProveedorInput {
+  nombre?: string;
+  email?: string;
+  telefono?: string;
+  direccion?: string;
+}
+
+// Validación de email
 const isValidEmail = (email: string): boolean => {
   if (!email) return true; // Email es opcional
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
+};
+
+// Validación de UUID
+const isValidUUID = (id: string): boolean => {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 };
 
 export function useProveedores() {
@@ -82,12 +102,7 @@ export function useProveedores() {
     }
   }, [empresaId]);
 
-  const createProveedor = async (data: {
-    nombre: string;
-    email?: string;
-    telefono?: string;
-    direccion?: string;
-  }): Promise<Proveedor> => {
+  const createProveedor = async (data: CreateProveedorInput): Promise<Proveedor> => {
     console.log('[useProveedores] createProveedor llamado con:', data);
 
     // Validaciones
@@ -128,11 +143,11 @@ export function useProveedores() {
 
         // Errores específicos de RLS
         if (err.code === '42501' || err.message.includes('RLS') || err.message.includes('policy')) {
-          throw new Error('Error de permisos (RLS): No tienes permiso para crear proveedores. Verifica la configuración de seguridad.');
+          throw new Error('Error de permisos (RLS): No tienes permiso para crear proveedores.');
         }
-        // Error de duplicado (si hay unique constraint en email)
+        // Error de duplicado
         if (err.code === '23505') {
-          throw new Error('Ya existe un proveedor con ese email.');
+          throw new Error('Ya existe un proveedor con ese nombre o email.');
         }
 
         throw new Error(`Error al crear proveedor: ${err.message}`);
@@ -157,15 +172,18 @@ export function useProveedores() {
 
   const updateProveedor = async (
     id: string,
-    data: Partial<Omit<Proveedor, 'id' | 'empresa_id' | 'created_at' | 'updated_at'>>
-  ): Promise<void> => {
+    data: UpdateProveedorInput
+  ): Promise<Proveedor> => {
     console.log('[useProveedores] updateProveedor llamado:', { id, data });
 
-    if (!id || typeof id !== 'string') {
+    if (!id || typeof id !== 'string' || !isValidUUID(id)) {
       throw new Error('ID de proveedor inválido');
     }
     if (!empresaId) {
       throw new Error('No se puede actualizar: empresa_id no disponible');
+    }
+    if (data.nombre !== undefined && !data.nombre.trim()) {
+      throw new Error('El nombre del proveedor no puede estar vacío');
     }
     if (data.email && !isValidEmail(data.email.trim())) {
       throw new Error('El formato del email no es válido');
@@ -175,11 +193,27 @@ export function useProveedores() {
     setError(null);
 
     try {
+      // Limpiar datos antes de enviar
+      const cleanedData: Record<string, unknown> = {};
+
+      if (data.nombre !== undefined) {
+        cleanedData.nombre = data.nombre.trim();
+      }
+      if (data.email !== undefined) {
+        cleanedData.email = data.email?.trim() || null;
+      }
+      if (data.telefono !== undefined) {
+        cleanedData.telefono = data.telefono?.trim() || null;
+      }
+      if (data.direccion !== undefined) {
+        cleanedData.direccion = data.direccion?.trim() || null;
+      }
+
       const { data: updatedProveedor, error: err } = await supabase
         .from('proveedores')
-        .update(data)
+        .update(cleanedData)
         .eq('id', id)
-        .eq('empresa_id', empresaId) // Seguridad adicional
+        .eq('empresa_id', empresaId)
         .select()
         .single();
 
@@ -188,6 +222,9 @@ export function useProveedores() {
 
         if (err.code === '42501' || err.message.includes('RLS')) {
           throw new Error('Error de permisos: No tienes permiso para actualizar este proveedor.');
+        }
+        if (err.code === '23505') {
+          throw new Error('Ya existe un proveedor con ese nombre o email.');
         }
 
         throw new Error(`Error al actualizar: ${err.message}`);
@@ -199,6 +236,7 @@ export function useProveedores() {
 
       console.log('[useProveedores] Proveedor actualizado:', updatedProveedor.id);
       setProveedores((prev) => prev.map((p) => (p.id === id ? updatedProveedor : p)));
+      return updatedProveedor;
     } catch (err) {
       console.error('[useProveedores] Error en updateProveedor:', err);
       const errorMessage = err instanceof Error ? err.message : 'Error al actualizar proveedor';
@@ -212,7 +250,7 @@ export function useProveedores() {
   const deleteProveedor = async (id: string): Promise<void> => {
     console.log('[useProveedores] deleteProveedor llamado:', id);
 
-    if (!id || typeof id !== 'string') {
+    if (!id || typeof id !== 'string' || !isValidUUID(id)) {
       throw new Error('ID de proveedor inválido');
     }
     if (!empresaId) {
@@ -227,13 +265,13 @@ export function useProveedores() {
         .from('proveedores')
         .delete()
         .eq('id', id)
-        .eq('empresa_id', empresaId); // Seguridad adicional
+        .eq('empresa_id', empresaId);
 
       if (err) {
         console.error('[useProveedores] Error al eliminar:', err);
 
         if (err.code === '23503') {
-          throw new Error('No se puede eliminar: Este proveedor está referenciado en productos o pedidos.');
+          throw new Error('No se puede eliminar: Este proveedor está referenciado en productos, reglas o pedidos.');
         }
         if (err.code === '42501' || err.message.includes('RLS')) {
           throw new Error('Error de permisos: No tienes permiso para eliminar este proveedor.');
@@ -254,6 +292,19 @@ export function useProveedores() {
     }
   };
 
+  const searchProveedores = (query: string): Proveedor[] => {
+    if (!query || !query.trim()) {
+      return proveedores;
+    }
+    const lowerQuery = query.toLowerCase().trim();
+    return proveedores.filter(
+      (p) =>
+        p.nombre.toLowerCase().includes(lowerQuery) ||
+        p.email?.toLowerCase().includes(lowerQuery) ||
+        p.telefono?.includes(lowerQuery)
+    );
+  };
+
   // Cargar proveedores cuando empresaId esté disponible
   useEffect(() => {
     if (empresaId) {
@@ -270,5 +321,6 @@ export function useProveedores() {
     createProveedor,
     updateProveedor,
     deleteProveedor,
+    searchProveedores,
   };
 }
