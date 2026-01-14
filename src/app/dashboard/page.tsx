@@ -476,7 +476,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <Link
-                href="/generated-orders"
+                href="/pedidos/historial"
                 className="flex items-center gap-1.5 text-sm font-medium text-[#064E3B] hover:underline"
               >
                 Ver todos los pedidos
@@ -498,7 +498,7 @@ export default function DashboardPage() {
                   {getActiveRulesCount()}
                 </p>
                 <Link
-                  href="/reorder-rules"
+                  href="/pedidos/configuracion"
                   className="text-xs text-[#064E3B] font-medium hover:underline mt-2 inline-block"
                 >
                   Gestionar reglas

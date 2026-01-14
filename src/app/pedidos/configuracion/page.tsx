@@ -2,15 +2,15 @@
 
 import { useState } from 'react';
 import AppLayout from '@/components/AppLayout';
-import ReorderRulesList from '@/components/features/ReorderRules/ReorderRulesList';
-import ReorderRuleModal from '@/components/features/ReorderRules/ReorderRuleModal';
+import ReorderRulesList from '@/components/features/Pedidos/ConfiguracionAutopedidos/ReorderRulesList';
+import ReorderRuleModal from '@/components/features/Pedidos/ConfiguracionAutopedidos/ReorderRuleModal';
 import { useReorderRules } from '@/hooks/useReorderRules';
 import { useProducts } from '@/hooks/useProducts';
 import { useProveedores } from '@/hooks/useProveedores';
 import type { ReglaAutopedido } from '@/types';
 import { Plus, Settings, RefreshCw } from 'lucide-react';
 
-export default function ReorderRulesPage() {
+export default function ConfiguracionAutopedidosPage() {
   const { rules, loading, error, createRule, updateRule, toggleRule, deleteRule, fetchRules } =
     useReorderRules();
   const { products, loading: productsLoading } = useProducts();
@@ -68,7 +68,7 @@ export default function ReorderRulesPage() {
                   Reglas de Autopedido
                 </h1>
                 <p className="text-sm text-[#6B7280] mt-1">
-                  Configura reglas automáticas para generar pedidos cuando el stock esté bajo
+                  Configura reglas automaticas para generar pedidos cuando el stock este bajo
                 </p>
               </div>
             </div>

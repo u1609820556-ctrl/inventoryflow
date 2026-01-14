@@ -2,14 +2,14 @@
 
 import { useState } from 'react';
 import AppLayout from '@/components/AppLayout';
-import GeneratedOrdersList from '@/components/features/GeneratedOrders/GeneratedOrdersList';
-import GeneratedOrderModal from '@/components/features/GeneratedOrders/GeneratedOrderModal';
-import SendEmailModal from '@/components/features/GeneratedOrders/SendEmailModal';
+import GeneratedOrdersList from '@/components/features/Pedidos/HistorialPedidos/GeneratedOrdersList';
+import GeneratedOrderModal from '@/components/features/Pedidos/HistorialPedidos/GeneratedOrderModal';
+import SendEmailModal from '@/components/features/Pedidos/HistorialPedidos/SendEmailModal';
 import { useGeneratedOrders } from '@/hooks/useGeneratedOrders';
 import type { PedidoGenerado, EstadoPedidoGenerado } from '@/types';
 import { FileText, RefreshCw } from 'lucide-react';
 
-export default function GeneratedOrdersPage() {
+export default function HistorialPedidosPage() {
   const {
     orders,
     loading,
@@ -62,10 +62,10 @@ export default function GeneratedOrdersPage() {
               </div>
               <div>
                 <h1 className="font-serif text-2xl md:text-3xl font-bold text-[#064E3B]">
-                  Pedidos Generados
+                  Historial de Pedidos
                 </h1>
                 <p className="text-sm text-[#6B7280] mt-1">
-                  Gestiona los pedidos generados automáticamente
+                  Gestiona los pedidos generados automaticamente
                 </p>
               </div>
             </div>

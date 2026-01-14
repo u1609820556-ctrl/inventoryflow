@@ -4,27 +4,40 @@ import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { authHelpers } from '@/lib/supabase';
 import Link from 'next/link';
+import { ChevronDown } from 'lucide-react';
+
+interface SubNavItem {
+  name: string;
+  href: string;
+}
 
 interface NavItem {
   name: string;
   href: string;
+  submenu?: SubNavItem[];
 }
 
 const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard' },
   { name: 'Productos', href: '/products' },
-  { name: 'Movimientos', href: '/movements' },
-  { name: 'Pedidos', href: '/orders' },
-  { name: 'Reglas Autopedido', href: '/reorder-rules' },
-  { name: 'Pedidos Generados', href: '/generated-orders' },
-  { name: 'Proveedores', href: '/providers' },
-  { name: 'Configuración', href: '/config' },
+  {
+    name: 'Pedidos',
+    href: '/pedidos',
+    submenu: [
+      { name: 'Configuracion', href: '/pedidos/configuracion' },
+      { name: 'Historial', href: '/pedidos/historial' },
+      { name: 'Crear Pedido', href: '/pedidos/manual' },
+    ],
+  },
+  { name: 'Proveedores', href: '/proveedores' },
+  { name: 'Configuracion', href: '/config' },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [loading, setLoading] = useState(true);
+  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -37,6 +50,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     };
     checkAuth();
   }, [router]);
+
+  // Auto-expand submenu if current path is within it
+  useEffect(() => {
+    navigation.forEach((item) => {
+      if (item.submenu && pathname.startsWith(item.href)) {
+        setOpenSubmenu(item.href);
+      }
+    });
+  }, [pathname]);
 
   if (loading) {
     return (
@@ -55,6 +77,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     router.refresh();
   };
 
+  const toggleSubmenu = (href: string) => {
+    setOpenSubmenu(openSubmenu === href ? null : href);
+  };
+
   return (
     <div className="flex h-screen bg-[#F5F2ED] text-[#374151]">
       {/* Sidebar */}
@@ -64,13 +90,58 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             InventoryFlow
           </h1>
           <p className="text-[10px] uppercase tracking-widest text-[#9CA3AF] font-bold mt-1">
-            Gestión Pyme
+            Gestion Pyme
           </p>
         </div>
 
         <nav className="flex-1 px-4 space-y-1">
           {navigation.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            const hasSubmenu = item.submenu && item.submenu.length > 0;
+            const isSubmenuOpen = openSubmenu === item.href;
+
+            if (hasSubmenu) {
+              return (
+                <div key={item.href}>
+                  <button
+                    onClick={() => toggleSubmenu(item.href)}
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                      isActive
+                        ? 'bg-[#064E3B] text-[#F5F2ED] shadow-sm'
+                        : 'text-[#6B7280] hover:bg-[#E2E2D5]/50 hover:text-[#064E3B]'
+                    }`}
+                  >
+                    <span>{item.name}</span>
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isSubmenuOpen ? 'rotate-180' : ''
+                      }`}
+                    />
+                  </button>
+                  {isSubmenuOpen && (
+                    <div className="mt-1 ml-4 space-y-1">
+                      {item.submenu!.map((subItem) => {
+                        const isSubActive = pathname === subItem.href;
+                        return (
+                          <Link
+                            key={subItem.href}
+                            href={subItem.href}
+                            className={`flex items-center px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                              isSubActive
+                                ? 'bg-[#064E3B]/10 text-[#064E3B] border-l-2 border-[#064E3B]'
+                                : 'text-[#6B7280] hover:bg-[#E2E2D5]/50 hover:text-[#064E3B]'
+                            }`}
+                          >
+                            {subItem.name}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <Link
                 key={item.href}
@@ -92,14 +163,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             onClick={handleSignOut}
             className="w-full flex items-center justify-center px-4 py-3 text-sm font-bold text-[#991B1B] hover:bg-[#991B1B]/10 rounded-xl transition-colors"
           >
-            Cerrar sesión
+            Cerrar sesion
           </button>
         </div>
       </aside>
 
       {/* Main content */}
       <main className="flex-1 overflow-auto bg-[#F5F2ED]">
-        {/* Eliminamos el padding extra aquí si el Dashboard ya tiene el suyo */}
         <div className="min-h-full">
           {children}
         </div>

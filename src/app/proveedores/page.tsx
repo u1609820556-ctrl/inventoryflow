@@ -2,11 +2,11 @@
 
 import { useState, useMemo } from 'react';
 import AppLayout from '@/components/AppLayout';
-import ProvidersList from '@/components/features/Providers/ProvidersList';
-import ProviderModal from '@/components/features/Providers/ProviderModal';
+import ProvidersList from '@/components/features/Proveedores/ProvidersList';
+import ProviderModal from '@/components/features/Proveedores/ProviderModal';
 import { useProveedores } from '@/hooks/useProveedores';
 import type { Proveedor } from '@/types';
-import type { ProviderFormData } from '@/components/features/Providers/ProviderForm';
+import type { ProviderFormData } from '@/components/features/Proveedores/ProviderForm';
 import { Building2 } from 'lucide-react';
 
 export default function ProvidersPage() {
