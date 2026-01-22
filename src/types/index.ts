@@ -12,7 +12,7 @@ export interface Producto {
   empresa_id: string;
   nombre: string;
   descripcion?: string;
-  codigo_barras?: string;
+  
   stock: number;
   precio_unitario: number;
   created_at: string;
@@ -199,6 +199,25 @@ export interface PaginatedResponse<T> {
   page: number;
   pageSize: number;
   totalPages: number;
+}
+
+// =====================================================
+// MOVIMIENTOS DE STOCK
+// =====================================================
+
+export type TipoMovimientoStock = 'ajuste_manual' | 'venta' | 'compra' | 'devolucion' | 'merma';
+
+export interface MovimientoStock {
+  id: string;
+  empresa_id: string;
+  producto_id: string;
+  tipo: TipoMovimientoStock;
+  cantidad: number;
+  stock_anterior: number;
+  stock_nuevo: number;
+  notas?: string;
+  usuario_id?: string;
+  created_at: string;
 }
 
 // =====================================================

@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import AppLayout from '@/components/AppLayout';
 import ProductsList from '@/components/features/Products/ProductsList';
 import ProductModal from '@/components/features/Products/ProductModal';
+import ImportarExcel from '@/components/features/Products/ImportarExcel';
+import { AlertasStockBajo } from '@/components/features/Productos/AlertasStockBajo';
 import { useProducts } from '@/hooks/useProducts';
 import type { Producto } from '@/types';
 import type { ProductFormData } from '@/components/features/Products/ProductForm';
@@ -19,9 +21,11 @@ export default function ProductsPage() {
     updateProduct,
     deleteProduct,
     searchProducts,
+    fetchProducts,
   } = useProducts();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Producto | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [modalLoading, setModalLoading] = useState(false);
@@ -84,6 +88,14 @@ export default function ProductsPage() {
     setSearchQuery(query);
   };
 
+  const handleImport = () => {
+    setIsImportModalOpen(true);
+  };
+
+  const handleImportSuccess = useCallback(() => {
+    fetchProducts();
+  }, [fetchProducts]);
+
   if (loading) {
     return (
       <AppLayout>
@@ -118,6 +130,9 @@ export default function ProductsPage() {
             </div>
           </div>
 
+          {/* Alertas de Stock Bajo */}
+          <AlertasStockBajo />
+
           {/* Error Alert */}
           {error && (
             <div className="mb-6 p-4 bg-[#FEF2F2] border border-[#991B1B]/20 rounded-xl">
@@ -132,6 +147,8 @@ export default function ProductsPage() {
             onDelete={handleDelete}
             onCreate={handleCreate}
             onSearch={handleSearch}
+            onImport={handleImport}
+            onStockUpdate={fetchProducts}
             loading={loading}
           />
 
@@ -142,6 +159,13 @@ export default function ProductsPage() {
             product={selectedProduct}
             onSave={handleSave}
             loading={modalLoading}
+          />
+
+          {/* Modal Importar Excel */}
+          <ImportarExcel
+            isOpen={isImportModalOpen}
+            onClose={() => setIsImportModalOpen(false)}
+            onImportSuccess={handleImportSuccess}
           />
         </div>
       </div>

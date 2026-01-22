@@ -27,12 +27,14 @@ interface ApiResponse {
   details?: string;
 }
 
-export function useReorderRules() {
+export function useReorderRules(enabled: boolean = true) {
   const [rules, setRules] = useState<ReglaAutopedido[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchRules = useCallback(async () => {
+    if (!enabled) return;
+
     setLoading(true);
     setError(null);
 
@@ -55,7 +57,7 @@ export function useReorderRules() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [enabled]);
 
   const createRule = async (data: CreateReorderRuleInput): Promise<ReglaAutopedido> => {
     // Validaciones
@@ -228,8 +230,10 @@ export function useReorderRules() {
   };
 
   useEffect(() => {
-    fetchRules();
-  }, [fetchRules]);
+    if (enabled) {
+      fetchRules();
+    }
+  }, [enabled, fetchRules]);
 
   return {
     rules,

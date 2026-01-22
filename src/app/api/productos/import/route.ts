@@ -4,7 +4,8 @@ import { createServerSupabaseClient, getEmpresaFromUser } from '@/lib/supabase-s
 interface ProductoImportData {
   nombre: string;
   descripcion?: string;
-  codigo_barras?: string;
+  referencia?: string;
+  proveedor_id?: string;
   stock?: number;
   precio_unitario?: number;
 }
@@ -68,12 +69,13 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // Preparar datos para inserción
+      // Preparar datos para inserción - usar user.id para cumplir con RLS
       const insertData = {
-        empresa_id: empresa.id,
+        empresa_id: user.id,
         nombre: producto.nombre.trim(),
         descripcion: producto.descripcion?.trim() || null,
-        codigo_barras: producto.codigo_barras?.trim() || null,
+        referencia: producto.referencia?.trim() || null,
+        proveedor_id: producto.proveedor_id?.trim() || null,
         stock: typeof producto.stock === 'number' && producto.stock >= 0 ? producto.stock : 0,
         precio_unitario: typeof producto.precio_unitario === 'number' && producto.precio_unitario >= 0 ? producto.precio_unitario : 0,
       };

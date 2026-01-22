@@ -112,6 +112,7 @@ export default function ImportarExcel({ isOpen, onClose, onImportSuccess }: Impo
       if (res.exito > 0) {
         showSuccess(`Se importaron ${res.exito} productos correctamente`);
         onImportSuccess();
+        onClose();
       } else {
         showError('No se pudieron importar los productos');
       }

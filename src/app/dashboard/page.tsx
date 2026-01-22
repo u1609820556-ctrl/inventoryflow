@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AppLayout from '@/components/AppLayout';
@@ -30,15 +30,17 @@ export default function DashboardPage() {
   const router = useRouter();
   const { company, loading: companyLoading } = useCompany();
 
-  // Redirect to setup if no company exists after loading
+  // Redirigir a signup si no hay empresa (después de que termine de cargar)
   useEffect(() => {
     if (!companyLoading && !company) {
-      router.push('/setup');
+      router.replace('/signup');
     }
   }, [company, companyLoading, router]);
-  const { products, loading: productsLoading } = useProducts();
-  const { rules, getActiveRulesCount } = useReorderRules();
-  const { orders: generatedOrders, loading: ordersLoading, getPendingOrdersCount, getSentOrdersThisWeek } = useGeneratedOrders();
+
+  // Solo cargar datos si hay empresa
+  const { products, loading: productsLoading } = useProducts(!!company);
+  const { rules, getActiveRulesCount } = useReorderRules(!!company);
+  const { orders: generatedOrders, loading: ordersLoading, getPendingOrdersCount, getSentOrdersThisWeek } = useGeneratedOrders(!!company);
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [loadingOrderId, setLoadingOrderId] = useState<string | null>(null);
@@ -123,7 +125,22 @@ export default function DashboardPage() {
     return (product.stock / minimo) * 100;
   };
 
-  if (companyLoading || productsLoading || ordersLoading) {
+  // Mostrar loading mientras carga company o si no hay company (redirigiendo)
+  if (companyLoading || !company) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F5F2ED]">
+        <div className="text-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-[#064E3B] border-r-transparent mb-4"></div>
+          <p className="text-[#374151] font-medium tracking-tight">
+            {companyLoading ? 'Cargando...' : 'Redirigiendo...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Mostrar loading si los datos aún cargan
+  if (productsLoading || ordersLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F5F2ED]">
         <div className="text-center">

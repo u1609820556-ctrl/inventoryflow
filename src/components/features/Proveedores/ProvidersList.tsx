@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { Proveedor } from '@/types';
-import { Search, Plus, MoreVertical, Building2, Mail, Phone, MapPin } from 'lucide-react';
+import { Search, Plus, MoreVertical, Building2, Mail, Phone, MapPin, FileSpreadsheet } from 'lucide-react';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 import { TableSkeleton, CardListSkeleton } from '@/components/ui/Skeleton';
 
@@ -12,6 +12,7 @@ export interface ProvidersListProps {
   onDelete: (id: string) => void;
   onCreate: () => void;
   onSearch: (query: string) => void;
+  onImport: () => void;
   loading: boolean;
 }
 
@@ -21,6 +22,7 @@ export default function ProvidersList({
   onDelete,
   onCreate,
   onSearch,
+  onImport,
   loading,
 }: ProvidersListProps) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -93,13 +95,22 @@ export default function ProvidersList({
             className="w-full pl-11 pr-4 py-3 bg-white border border-[#E2E2D5] rounded-xl text-sm text-[#374151] placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200"
           />
         </div>
-        <button
-          onClick={onCreate}
-          className="w-full sm:w-auto px-5 py-3 bg-[#064E3B] text-[#F5F2ED] rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all duration-200 shadow-sm"
-        >
-          <Plus className="w-4 h-4" strokeWidth={2.5} />
-          <span>Nuevo Proveedor</span>
-        </button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <button
+            onClick={onImport}
+            className="w-full sm:w-auto px-5 py-3 bg-white text-[#064E3B] border border-[#064E3B] rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:bg-[#064E3B]/5 transition-all duration-200"
+          >
+            <FileSpreadsheet className="w-4 h-4" strokeWidth={2.5} />
+            <span>Importar Excel</span>
+          </button>
+          <button
+            onClick={onCreate}
+            className="w-full sm:w-auto px-5 py-3 bg-[#064E3B] text-[#F5F2ED] rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all duration-200 shadow-sm"
+          >
+            <Plus className="w-4 h-4" strokeWidth={2.5} />
+            <span>Nuevo Proveedor</span>
+          </button>
+        </div>
       </div>
 
       {/* Tabla */}

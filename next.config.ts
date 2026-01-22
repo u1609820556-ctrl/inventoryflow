@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // instrumentation.ts se habilita automaticamente en Next.js 16+
 };
 
 export default nextConfig;

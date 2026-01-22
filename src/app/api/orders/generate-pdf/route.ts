@@ -137,7 +137,6 @@ export async function POST(request: NextRequest) {
       success: true,
       numero_pedido: numeroPedido,
       pdf_base64: result.pdf_base64,
-      html_content: result.html_content,
       total_estimado: total,
       lineas: lineasEnriquecidas,
       proveedor: {

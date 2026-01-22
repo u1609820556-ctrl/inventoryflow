@@ -150,7 +150,6 @@ export async function POST(request: NextRequest) {
       .from('productos')
       .select('id, nombre')
       .eq('id', body.producto_id)
-      .eq('empresa_id', empresa.id)
       .single();
 
     if (productoError || !producto) {
@@ -168,7 +167,6 @@ export async function POST(request: NextRequest) {
       .from('proveedores')
       .select('id, nombre')
       .eq('id', body.proveedor_id)
-      .eq('empresa_id', empresa.id)
       .single();
 
     if (proveedorError || !proveedor) {
@@ -196,16 +194,6 @@ export async function POST(request: NextRequest) {
 
     console.log('[API reorder-rules] Regla existente:', existingRule ? existingRule.id : 'ninguna');
 
-    // Datos para la regla (con los nuevos nombres de campos)
-    const ruleData = {
-      empresa_id: empresa.id,
-      producto_id: body.producto_id,
-      proveedor_id: body.proveedor_id,
-      stock_minimo: body.stock_minimo,
-      cantidad_pedido: body.cantidad_pedido,
-      activa: body.activa ?? true,
-    };
-
     let result;
 
     if (existingRule) {
@@ -214,9 +202,9 @@ export async function POST(request: NextRequest) {
       const { data, error } = await supabase
         .from('reglas_autopedido')
         .update({
-          stock_minimo: ruleData.stock_minimo,
-          cantidad_pedido: ruleData.cantidad_pedido,
-          activa: ruleData.activa,
+          stock_minimo: body.stock_minimo,
+          cantidad_pedido: body.cantidad_pedido,
+          activa: body.activa ?? true,
         })
         .eq('id', existingRule.id)
         .select('*, productos(id, nombre), proveedores(id, nombre)')
@@ -237,11 +225,19 @@ export async function POST(request: NextRequest) {
       console.log('[API reorder-rules] Regla actualizada exitosamente');
       result = data;
     } else {
-      // Crear nueva regla
-      console.log('[API reorder-rules] Creando nueva regla:', ruleData);
+      // Crear nueva regla - SIN empresa_id en el insert
+      // RLS lo agregará automáticamente basado en auth.uid()
+      console.log('[API reorder-rules] Creando nueva regla...');
       const { data, error } = await supabase
         .from('reglas_autopedido')
-        .insert(ruleData)
+        .insert({
+          empresa_id: empresa.id,  // ← El servidor controla esto
+          producto_id: body.producto_id,
+          proveedor_id: body.proveedor_id,
+          stock_minimo: body.stock_minimo,
+          cantidad_pedido: body.cantidad_pedido,
+          activa: body.activa ?? true,
+        })
         .select('*, productos(id, nombre), proveedores(id, nombre)')
         .single();
 

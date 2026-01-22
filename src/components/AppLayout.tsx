@@ -20,15 +20,7 @@ interface NavItem {
 const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/dashboard' },
   { name: 'Productos', href: '/products' },
-  {
-    name: 'Pedidos',
-    href: '/pedidos',
-    submenu: [
-      { name: 'Configuracion', href: '/pedidos/configuracion' },
-      { name: 'Historial', href: '/pedidos/historial' },
-      { name: 'Crear Pedido', href: '/pedidos/manual' },
-    ],
-  },
+  { name: 'Pedidos', href: '/pedidos' },
   { name: 'Proveedores', href: '/proveedores' },
   { name: 'Configuracion', href: '/config' },
 ];
@@ -72,7 +64,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   const handleSignOut = async () => {
-    await authHelpers.signOut();
+    await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/login');
     router.refresh();
   };

@@ -80,9 +80,9 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // Preparar datos para inserción
+      // Preparar datos para inserción - usar user.id para cumplir con RLS
       const insertData = {
-        empresa_id: empresa.id,
+        empresa_id: user.id,
         nombre: proveedor.nombre.trim(),
         email: proveedor.email?.trim() || null,
         telefono: proveedor.telefono?.trim() || null,

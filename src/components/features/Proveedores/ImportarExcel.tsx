@@ -112,6 +112,7 @@ export default function ImportarExcelProveedores({ isOpen, onClose, onImportSucc
       if (res.exito > 0) {
         showSuccess(`Se importaron ${res.exito} proveedores correctamente`);
         onImportSuccess();
+        onClose();
       } else {
         showError('No se pudieron importar los proveedores');
       }

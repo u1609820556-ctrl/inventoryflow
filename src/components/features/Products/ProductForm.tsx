@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import type { Producto, CreateProductoInput } from '@/types';
+import type { Producto, CreateProductoInput, Proveedor } from '@/types';
+import { useProveedores } from '@/hooks/useProveedores';
 
 export interface ProductFormData {
   nombre: string;
   descripcion?: string;
-  codigo_barras?: string;
+  referencia?: string;
+  proveedor_id?: string;
   stock: number;
   precio_unitario: number;
 }
@@ -19,10 +21,13 @@ export interface ProductFormProps {
 }
 
 export default function ProductForm({ product, onSubmit, onCancel, loading }: ProductFormProps) {
+  const { proveedores } = useProveedores();
+
   const [formData, setFormData] = useState<ProductFormData>({
     nombre: '',
     descripcion: '',
-    codigo_barras: '',
+    referencia: '',
+    proveedor_id: '',
     stock: 0,
     precio_unitario: 0,
   });
@@ -34,7 +39,8 @@ export default function ProductForm({ product, onSubmit, onCancel, loading }: Pr
       setFormData({
         nombre: product.nombre,
         descripcion: product.descripcion || '',
-        codigo_barras: product.codigo_barras || '',
+        referencia: product.referencia || '',
+        proveedor_id: product.proveedor_id || '',
         stock: product.stock,
         precio_unitario: product.precio_unitario,
       });
@@ -131,19 +137,39 @@ export default function ProductForm({ product, onSubmit, onCancel, loading }: Pr
         )}
       </div>
 
-      {/* Codigo de barras */}
+      {/* Referencia */}
       <div>
         <label className="block text-sm font-semibold text-[#374151] mb-2">
-          Codigo de barras
+          Referencia
         </label>
         <input
           type="text"
-          value={formData.codigo_barras}
-          onChange={(e) => handleChange('codigo_barras', e.target.value)}
+          value={formData.referencia}
+          onChange={(e) => handleChange('referencia', e.target.value)}
           disabled={loading}
           className="w-full px-4 py-3 bg-white border border-[#E2E2D5] rounded-xl text-sm text-[#374151] font-mono placeholder-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200 disabled:bg-[#F9FAFB] disabled:cursor-not-allowed"
-          placeholder="Ej: 7501234567890"
+          placeholder="Ej: REF-001"
         />
+      </div>
+
+      {/* Proveedor Principal */}
+      <div>
+        <label className="block text-sm font-semibold text-[#374151] mb-2">
+          Proveedor Principal
+        </label>
+        <select
+          value={formData.proveedor_id}
+          onChange={(e) => handleChange('proveedor_id', e.target.value)}
+          disabled={loading}
+          className="w-full px-4 py-3 bg-white border border-[#E2E2D5] rounded-xl text-sm text-[#374151] focus:outline-none focus:ring-2 focus:ring-[#064E3B]/20 focus:border-[#064E3B] transition-all duration-200 disabled:bg-[#F9FAFB] disabled:cursor-not-allowed"
+        >
+          <option value="">Selecciona proveedor...</option>
+          {proveedores?.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.nombre}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Stock y Precio unitario */}

@@ -70,20 +70,14 @@ export function useProveedores() {
   }, []);
 
   const fetchProveedores = useCallback(async () => {
-    if (!empresaId) {
-      console.log('[useProveedores] fetchProveedores: No hay empresa_id, esperando...');
-      return;
-    }
-
     setLoading(true);
     setError(null);
-    console.log('[useProveedores] Obteniendo proveedores para empresa:', empresaId);
+    console.log('[useProveedores] Obteniendo proveedores...');
 
     try {
       const { data, error: err } = await supabase
         .from('proveedores')
         .select('*')
-        .eq('empresa_id', empresaId)
         .order('nombre');
 
       if (err) {
@@ -305,12 +299,10 @@ export function useProveedores() {
     );
   };
 
-  // Cargar proveedores cuando empresaId esté disponible
+  // Cargar proveedores al iniciar
   useEffect(() => {
-    if (empresaId) {
-      fetchProveedores();
-    }
-  }, [empresaId, fetchProveedores]);
+    fetchProveedores();
+  }, [fetchProveedores]);
 
   return {
     proveedores,

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient, getEmpresaFromUser } from '@/lib/supabase-server';
+import { enviarPedidoAlProveedor } from '@/lib/email-service';
+import { generarPDFPedido } from '@/lib/pdf-generator';
 import {
-  sendOrderEmail,
   generateOrderEmailSubject,
   generateOrderEmailHTML,
   generateOrderEmailText,
@@ -11,7 +12,6 @@ import type { Empresa, Proveedor, PedidoGenerado } from '@/types';
 
 interface SendEmailBody {
   email_proveedor: string;
-  pdf_base64?: string;
 }
 
 interface RouteParams {
@@ -20,12 +20,12 @@ interface RouteParams {
   }>;
 }
 
-// POST /api/orders/[id]/send-email - Envía el pedido por email al proveedor
+// POST /api/orders/[id]/send-email - Envia el pedido por email al proveedor
 export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
 
-    // Verificar autenticación y obtener empresa
+    // Verificar autenticacion y obtener empresa
     const { empresa, error: authError } = await getEmpresaFromUser();
     if (authError || !empresa) {
       return NextResponse.json(
@@ -45,18 +45,18 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Validar formato de email básico
+    // Validar formato de email basico
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(body.email_proveedor)) {
       return NextResponse.json(
-        { error: 'Formato de email inválido' },
+        { error: 'Formato de email invalido' },
         { status: 400 }
       );
     }
 
     const supabase = await createServerSupabaseClient();
 
-    // Obtener el pedido
+    // Obtener el pedido con proveedor
     const { data: pedido, error: pedidoError } = await supabase
       .from('pedidos_generados')
       .select('*, proveedores(*)')
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const typedPedido = pedido as PedidoGenerado & { proveedores: Proveedor };
 
-    // Verificar que el pedido está en estado válido para enviar
+    // Verificar que el pedido esta en estado valido para enviar
     if (typedPedido.estado === 'sent') {
       return NextResponse.json(
         { error: 'Este pedido ya ha sido enviado', sent_at: typedPedido.sent_at },
@@ -88,25 +88,37 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Generar número de pedido si no existe
+    // Generar numero de pedido
     const numeroPedido = `PO-${typedPedido.id.slice(0, 8).toUpperCase()}`;
 
-    // Preparar datos del email
-    const emailData: OrderEmailData = {
-      empresa: empresa as Empresa,
-      proveedor: typedPedido.proveedores,
-      lineas: typedPedido.datos_pedido,
-      numero_pedido: numeroPedido,
-      total_estimado: Number(typedPedido.total_estimado),
-      notas: typedPedido.notas || undefined,
-    };
-
-    // Enviar email
-    const emailResult = await sendOrderEmail(
-      body.email_proveedor,
-      emailData,
-      body.pdf_base64
+    // Generar PDF del pedido
+    const pdfBuffer = await generarPDFPedido(
+      {
+        id: typedPedido.id,
+        datos_pedido: typedPedido.datos_pedido,
+        total_estimado: Number(typedPedido.total_estimado),
+        notas: typedPedido.notas,
+      },
+      empresa as Empresa,
+      typedPedido.proveedores
     );
+
+    // Enviar email con PDF adjunto
+    const emailResult = await enviarPedidoAlProveedor({
+      proveedor: {
+        ...typedPedido.proveedores,
+        email: body.email_proveedor, // Usar el email proporcionado
+      },
+      cliente: empresa as Empresa,
+      pedido: {
+        id: typedPedido.id,
+        numero_pedido: numeroPedido,
+        datos_pedido: typedPedido.datos_pedido,
+        total_estimado: Number(typedPedido.total_estimado),
+        notas: typedPedido.notas,
+      },
+      pdfBuffer,
+    });
 
     if (!emailResult.success) {
       return NextResponse.json(
@@ -115,22 +127,21 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Actualizar el pedido con estado 'sent' y fecha de envío
+    // Actualizar el pedido con estado 'sent' y fecha de envio
     const now = new Date().toISOString();
     const { error: updateError } = await supabase
       .from('pedidos_generados')
       .update({
         estado: 'sent',
         sent_at: now,
-        email_template_used: 'order_v1', // Para tracking de qué template se usó
+        email_template_used: 'order_v1',
         updated_at: now,
       })
       .eq('id', id);
 
     if (updateError) {
       console.error('Error updating order status:', updateError);
-      // El email ya se envió, pero no pudimos actualizar el estado
-      // Esto no debería ser un error fatal para el usuario
+      // El email ya se envio, pero no pudimos actualizar el estado
       return NextResponse.json({
         estado: 'sent',
         sent_at: now,
@@ -162,7 +173,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
 
-    // Verificar autenticación y obtener empresa
+    // Verificar autenticacion y obtener empresa
     const { empresa, error: authError } = await getEmpresaFromUser();
     if (authError || !empresa) {
       return NextResponse.json(

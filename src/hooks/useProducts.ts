@@ -8,7 +8,8 @@ import type { Producto } from '@/types';
 export interface CreateProductInput {
   nombre: string;
   descripcion?: string;
-  codigo_barras?: string;
+  referencia?: string;
+  proveedor_id?: string;
   stock?: number;
   precio_unitario: number;
 }
@@ -16,7 +17,8 @@ export interface CreateProductInput {
 export interface UpdateProductInput {
   nombre?: string;
   descripcion?: string;
-  codigo_barras?: string;
+  referencia?: string;
+  proveedor_id?: string;
   stock?: number;
   precio_unitario?: number;
 }
@@ -26,14 +28,16 @@ const isValidUUID = (id: string): boolean => {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 };
 
-export function useProducts() {
+export function useProducts(enabled: boolean = true) {
   const [products, setProducts] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [empresaId, setEmpresaId] = useState<string | null>(null);
 
-  // Obtener empresa_id al inicializar
+  // Obtener empresa_id al inicializar (solo si está habilitado)
   useEffect(() => {
+    if (!enabled) return;
+
     const getEmpresaId = async () => {
       try {
         console.log('[useProducts] Obteniendo empresa_id...');
@@ -62,23 +66,20 @@ export function useProducts() {
     };
 
     getEmpresaId();
-  }, []);
+  }, [enabled]);
 
   const fetchProducts = useCallback(async () => {
-    if (!empresaId) {
-      console.log('[useProducts] fetchProducts: No hay empresa_id, esperando...');
-      return;
-    }
-
     setLoading(true);
     setError(null);
-    console.log('[useProducts] Obteniendo productos para empresa:', empresaId);
+    console.log('[useProducts] Obteniendo productos...');
 
     try {
       const { data, error: err } = await supabase
         .from('productos')
-        .select('*')
-        .eq('empresa_id', empresaId)
+        .select(`
+          *,
+          proveedor:proveedor_id(id, nombre)
+        `)
         .order('nombre');
 
       if (err) {
@@ -124,7 +125,8 @@ export function useProducts() {
         empresa_id: empresaId,
         nombre: data.nombre.trim(),
         descripcion: data.descripcion?.trim() || null,
-        codigo_barras: data.codigo_barras?.trim() || null,
+        referencia: data.referencia?.trim() || null,
+        proveedor_id: data.proveedor_id || null,
         stock: data.stock ?? 0,
         precio_unitario: data.precio_unitario,
       };
@@ -205,8 +207,11 @@ export function useProducts() {
       if (data.descripcion !== undefined) {
         cleanedData.descripcion = data.descripcion?.trim() || null;
       }
-      if (data.codigo_barras !== undefined) {
-        cleanedData.codigo_barras = data.codigo_barras?.trim() || null;
+      if (data.referencia !== undefined) {
+        cleanedData.referencia = data.referencia?.trim() || null;
+      }
+      if (data.proveedor_id !== undefined) {
+        cleanedData.proveedor_id = data.proveedor_id || null;
       }
       if (data.stock !== undefined) {
         cleanedData.stock = data.stock;
@@ -313,16 +318,17 @@ export function useProducts() {
       (p) =>
         p.nombre.toLowerCase().includes(lowerQuery) ||
         p.descripcion?.toLowerCase().includes(lowerQuery) ||
-        p.codigo_barras?.toLowerCase().includes(lowerQuery)
+        p.referencia?.toLowerCase().includes(lowerQuery) ||
+        p.proveedor?.nombre?.toLowerCase().includes(lowerQuery)
     );
   };
 
-  // Cargar productos cuando empresaId esté disponible
+  // Cargar productos al iniciar
   useEffect(() => {
-    if (empresaId) {
+    if (enabled) {
       fetchProducts();
     }
-  }, [empresaId, fetchProducts]);
+  }, [enabled, fetchProducts]);
 
   return {
     products,

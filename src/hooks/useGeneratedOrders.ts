@@ -34,7 +34,7 @@ interface ApiResponse {
   details?: string;
 }
 
-export function useGeneratedOrders() {
+export function useGeneratedOrders(enabled: boolean = true) {
   const [orders, setOrders] = useState<PedidoGenerado[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +42,8 @@ export function useGeneratedOrders() {
   const [generatingPDF, setGeneratingPDF] = useState<string | null>(null);
 
   const fetchOrders = useCallback(async () => {
+    if (!enabled) return;
+
     setLoading(true);
     setError(null);
     try {
@@ -59,7 +61,7 @@ export function useGeneratedOrders() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [enabled]);
 
   const sendEmail = async (orderId: string, data: SendEmailData): Promise<SendEmailResponse> => {
     setSendingEmail(orderId);
@@ -205,8 +207,10 @@ export function useGeneratedOrders() {
   };
 
   useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
+    if (enabled) {
+      fetchOrders();
+    }
+  }, [enabled, fetchOrders]);
 
   return {
     orders,

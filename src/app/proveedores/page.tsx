@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import AppLayout from '@/components/AppLayout';
 import ProvidersList from '@/components/features/Proveedores/ProvidersList';
 import ProviderModal from '@/components/features/Proveedores/ProviderModal';
+import ImportarExcelProveedores from '@/components/features/Proveedores/ImportarExcel';
 import { useProveedores } from '@/hooks/useProveedores';
 import type { Proveedor } from '@/types';
 import type { ProviderFormData } from '@/components/features/Proveedores/ProviderForm';
@@ -18,9 +19,11 @@ export default function ProvidersPage() {
     createProveedor,
     updateProveedor,
     deleteProveedor,
+    fetchProveedores,
   } = useProveedores();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<Proveedor | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [modalLoading, setModalLoading] = useState(false);
@@ -90,6 +93,14 @@ export default function ProvidersPage() {
     setSearchQuery(query);
   };
 
+  const handleImport = () => {
+    setIsImportModalOpen(true);
+  };
+
+  const handleImportSuccess = useCallback(() => {
+    fetchProveedores();
+  }, [fetchProveedores]);
+
   if (loading) {
     return (
       <AppLayout>
@@ -138,6 +149,7 @@ export default function ProvidersPage() {
             onDelete={handleDelete}
             onCreate={handleCreate}
             onSearch={handleSearch}
+            onImport={handleImport}
             loading={loading}
           />
 
@@ -148,6 +160,13 @@ export default function ProvidersPage() {
             provider={selectedProvider}
             onSave={handleSave}
             loading={modalLoading}
+          />
+
+          {/* Modal Importar Excel */}
+          <ImportarExcelProveedores
+            isOpen={isImportModalOpen}
+            onClose={() => setIsImportModalOpen(false)}
+            onImportSuccess={handleImportSuccess}
           />
         </div>
       </div>
