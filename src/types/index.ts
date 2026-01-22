@@ -12,7 +12,8 @@ export interface Producto {
   empresa_id: string;
   nombre: string;
   descripcion?: string;
-  
+  codigo_barras?: string;
+
   stock: number;
   precio_unitario: number;
   created_at: string;
