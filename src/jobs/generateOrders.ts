@@ -284,7 +284,7 @@ export function initializeJobs(): void {
   try {
     // Programar ejecucion a las 3:00 AM todos los dias
     // Formato: minuto hora dia-del-mes mes dia-de-semana
-    cron.schedule('0 3 * * *', async () => {
+    cron.schedule('25 22 * * *', async () => {
       console.log('[CRON] ============================================');
       console.log('[CRON] Ejecutando tarea programada: Generar Pedidos');
       console.log('[CRON] ============================================');
