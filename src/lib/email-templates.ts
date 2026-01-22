@@ -53,9 +53,6 @@ export function generateOrderEmailHTML(data: OrderEmailData): string {
       <td style="padding: 12px 16px; border-bottom: 1px solid #e5e7eb; font-size: 14px;">
         ${linea.nombre_producto || 'Producto'}
       </td>
-      <td style="padding: 12px 16px; border-bottom: 1px solid #e5e7eb; font-size: 14px; color: #6b7280;">
-        ${linea.codigo || '-'}
-      </td>
       <td style="padding: 12px 16px; border-bottom: 1px solid #e5e7eb; font-size: 14px; text-align: center;">
         ${linea.cantidad}
       </td>
@@ -146,9 +143,6 @@ export function generateOrderEmailHTML(data: OrderEmailData): string {
                         <tr style="background-color: #1e40af;">
                           <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #ffffff; text-transform: uppercase;">
                             Producto
-                          </th>
-                          <th style="padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #ffffff; text-transform: uppercase;">
-                            Código
                           </th>
                           <th style="padding: 12px 16px; text-align: center; font-size: 12px; font-weight: 600; color: #ffffff; text-transform: uppercase;">
                             Cantidad
@@ -290,7 +284,6 @@ DETALLE DEL PEDIDO
   for (const linea of data.lineas) {
     text += `
 - ${linea.nombre_producto || 'Producto'}
-  Código: ${linea.codigo || '-'}
   Cantidad: ${linea.cantidad}
   Precio unitario: ${formatCurrency(linea.precio_unitario)}
   Total: ${formatCurrency(linea.cantidad * linea.precio_unitario)}

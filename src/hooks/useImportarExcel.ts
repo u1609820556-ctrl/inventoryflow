@@ -29,7 +29,6 @@ export type TipoImportacion = 'productos' | 'proveedores' | 'desconocido';
 export interface DatosProductoImportar {
   nombre: string;
   descripcion?: string;
-  codigo_barras?: string;
   stock: number;
   precio_unitario: number;
 }
@@ -56,7 +55,7 @@ export interface ResultadoImportacion {
 }
 
 // Palabras clave para detectar tipo
-const KEYWORDS_PRODUCTOS = ['producto', 'nombre', 'precio', 'stock', 'precio_unitario', 'codigo_barras', 'descripcion', 'barcode', 'price', 'quantity'];
+const KEYWORDS_PRODUCTOS = ['producto', 'nombre', 'precio', 'stock', 'precio_unitario', 'descripcion', 'price', 'quantity'];
 const KEYWORDS_PROVEEDORES = ['proveedor', 'supplier', 'email', 'telefono', 'direccion', 'phone', 'address', 'contacto'];
 
 // Mapeo de columnas
@@ -67,10 +66,6 @@ const COLUMN_MAPPINGS_PRODUCTOS: Record<string, string> = {
   'name': 'nombre',
   'descripcion': 'descripcion',
   'description': 'descripcion',
-  'codigo_barras': 'codigo_barras',
-  'codigo': 'codigo_barras',
-  'barcode': 'codigo_barras',
-  'sku': 'codigo_barras',
   'stock': 'stock',
   'cantidad': 'stock',
   'quantity': 'stock',

@@ -38,7 +38,6 @@ interface ReglaConProducto extends ReglaAutopedido {
     nombre: string;
     stock: number;
     precio_unitario: number;
-    codigo_barras?: string;
   };
   proveedores: Proveedor;
   empresa: Empresa;
@@ -81,8 +80,7 @@ export async function generarPedidosAutomaticos(): Promise<GenerarPedidosResult>
           id,
           nombre,
           stock,
-          precio_unitario,
-          codigo_barras
+          precio_unitario
         ),
         proveedores (
           id,
@@ -164,7 +162,6 @@ export async function generarPedidosAutomaticos(): Promise<GenerarPedidosResult>
           cantidad: regla.cantidad_pedido,
           precio_unitario: regla.productos.precio_unitario,
           nombre_producto: regla.productos.nombre,
-          codigo: regla.productos.codigo_barras,
         }));
 
         // Calcular total

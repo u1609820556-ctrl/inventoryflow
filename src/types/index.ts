@@ -12,18 +12,26 @@ export interface Producto {
   empresa_id: string;
   nombre: string;
   descripcion?: string;
-  codigo_barras?: string;
+  referencia?: string;
+  proveedor_id?: string;
 
   stock: number;
   precio_unitario: number;
   created_at: string;
   updated_at: string;
+
+  // Campo opcional populado desde Supabase JOINs
+  proveedor?: {
+    id: string;
+    nombre: string;
+  };
 }
 
 export interface CreateProductoInput {
   nombre: string;
   descripcion?: string;
-  codigo_barras?: string;
+  referencia?: string;
+  proveedor_id?: string;
   stock?: number;
   precio_unitario: number;
 }
@@ -31,7 +39,8 @@ export interface CreateProductoInput {
 export interface UpdateProductoInput {
   nombre?: string;
   descripcion?: string;
-  codigo_barras?: string;
+  referencia?: string;
+  proveedor_id?: string;
   stock?: number;
   precio_unitario?: number;
 }
@@ -118,7 +127,6 @@ export interface LineaPedidoGenerado {
   cantidad: number;
   precio_unitario: number;
   nombre_producto?: string;
-  codigo?: string;
 }
 
 export interface PedidoGenerado {

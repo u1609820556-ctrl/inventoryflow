@@ -266,7 +266,7 @@ export default function ImportarExcel({ isOpen, onClose, onImportSuccess }: Impo
               <div>
                 <h4 className="text-sm font-medium text-[#374151] mb-2">Columnas encontradas:</h4>
                 <div className="flex flex-wrap gap-2">
-                  {['nombre', 'descripcion', 'codigo_barras', 'stock', 'precio_unitario'].map((col) => (
+                  {['nombre', 'descripcion', 'stock', 'precio_unitario'].map((col) => (
                     <span
                       key={col}
                       className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -309,7 +309,6 @@ export default function ImportarExcel({ isOpen, onClose, onImportSuccess }: Impo
                           <th className="px-4 py-3 text-left text-xs font-medium text-[#6B7280] uppercase">Nombre</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-[#6B7280] uppercase">Stock</th>
                           <th className="px-4 py-3 text-left text-xs font-medium text-[#6B7280] uppercase">Precio</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-[#6B7280] uppercase">Código</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-[#E2E2D5]">
@@ -318,7 +317,6 @@ export default function ImportarExcel({ isOpen, onClose, onImportSuccess }: Impo
                             <td className="px-4 py-3 text-sm text-[#374151]">{item.nombre || '-'}</td>
                             <td className="px-4 py-3 text-sm text-[#374151]">{item.stock ?? 0}</td>
                             <td className="px-4 py-3 text-sm text-[#374151]">${(item.precio_unitario ?? 0).toFixed(2)}</td>
-                            <td className="px-4 py-3 text-sm text-[#374151]">{item.codigo_barras || '-'}</td>
                           </tr>
                         ))}
                       </tbody>

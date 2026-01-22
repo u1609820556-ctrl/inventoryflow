@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     const productIds = body.lineas.map(l => l.producto_id);
     const { data: productos, error: productosError } = await supabase
       .from('productos')
-      .select('id, nombre, codigo_barras')
+      .select('id, nombre')
       .in('id', productIds);
 
     if (productosError) {
@@ -106,7 +106,6 @@ export async function POST(request: NextRequest) {
         cantidad: linea.cantidad,
         precio_unitario: linea.precio_unitario,
         nombre_producto: producto?.nombre || 'Producto desconocido',
-        codigo: producto?.codigo_barras || '-',
       };
     });
 

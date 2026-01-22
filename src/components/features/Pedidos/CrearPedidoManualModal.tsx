@@ -76,9 +76,8 @@ export default function CrearPedidoManualModal({
     if (busquedaProducto.trim()) {
       const query = busquedaProducto.toLowerCase();
       filtered = filtered.filter(
-        p =>
-          p.nombre.toLowerCase().includes(query) ||
-          p.codigo_barras?.toLowerCase().includes(query)
+        p => p.nombre.toLowerCase().includes(query) ||
+          p.descripcion?.toLowerCase().includes(query)
       );
     }
 
@@ -292,7 +291,7 @@ export default function CrearPedidoManualModal({
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9CA3AF]" />
                   <input
                     type="text"
-                    placeholder="Buscar producto por nombre o codigo..."
+                    placeholder="Buscar producto por nombre..."
                     value={busquedaProducto}
                     onChange={(e) => {
                       setBusquedaProducto(e.target.value);

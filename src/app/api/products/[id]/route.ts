@@ -9,7 +9,8 @@ function isValidUUID(id: string): boolean {
 interface UpdateProductBody {
   nombre?: string;
   descripcion?: string;
-  codigo_barras?: string;
+  referencia?: string;
+  proveedor_id?: string;
   stock?: number;
   precio_unitario?: number;
 }
@@ -101,8 +102,11 @@ export async function PUT(
     if (body.descripcion !== undefined) {
       updateData.descripcion = body.descripcion?.trim() || null;
     }
-    if (body.codigo_barras !== undefined) {
-      updateData.codigo_barras = body.codigo_barras?.trim() || null;
+    if (body.referencia !== undefined) {
+      updateData.referencia = body.referencia?.trim() || null;
+    }
+    if (body.proveedor_id !== undefined) {
+      updateData.proveedor_id = body.proveedor_id || null;
     }
     if (body.stock !== undefined) {
       updateData.stock = body.stock;

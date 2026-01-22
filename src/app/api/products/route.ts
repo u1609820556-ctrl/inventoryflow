@@ -9,7 +9,8 @@ function isValidUUID(id: string): boolean {
 interface CreateProductBody {
   nombre: string;
   descripcion?: string;
-  codigo_barras?: string;
+  referencia?: string;
+  proveedor_id?: string;
   stock?: number;
   precio_unitario: number;
 }
@@ -36,7 +37,7 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from('productos')
-      .select('*')
+      .select('*, proveedor:proveedores(id, nombre)')
       .eq('empresa_id', empresa.id)
       .order('nombre');
 
@@ -125,7 +126,8 @@ export async function POST(request: NextRequest) {
       empresa_id: empresa.id,
       nombre: body.nombre.trim(),
       descripcion: body.descripcion?.trim() || null,
-      codigo_barras: body.codigo_barras?.trim() || null,
+      referencia: body.referencia?.trim() || null,
+      proveedor_id: body.proveedor_id || null,
       stock: body.stock ?? 0,
       precio_unitario: body.precio_unitario,
     };
